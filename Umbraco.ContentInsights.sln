@@ -1,11 +1,10 @@
-
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.12.35728.132
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Umbraco.ContentInsights.Website.Web", "src\Umbraco.ContentInsights.Website.Web\Umbraco.ContentInsights.Website.Web.csproj", "{BB6FEC1E-185D-09F9-868C-E6BD9713BDBD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Umbraco.ContentInsights.Website.Web", "src\Test Website\Umbraco.ContentInsights.Website.Web\Umbraco.ContentInsights.Website.Web.csproj", "{53852F94-F70B-169C-4BE9-D1227F6C827C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Umbraco.ContentInsights.Website.Core", "src\Umbraco.ContentInsights.Website.Core\Umbraco.ContentInsights.Website.Core.csproj", "{38A19B45-275B-B2AC-B63A-E939654D4958}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Umbraco.ContentInsights", "src\Umbraco.ContentInsights\Umbraco.ContentInsights.csproj", "{934C3015-FD8C-F078-D6ED-B6E0BC55A5E1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,14 +12,14 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{BB6FEC1E-185D-09F9-868C-E6BD9713BDBD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BB6FEC1E-185D-09F9-868C-E6BD9713BDBD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BB6FEC1E-185D-09F9-868C-E6BD9713BDBD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BB6FEC1E-185D-09F9-868C-E6BD9713BDBD}.Release|Any CPU.Build.0 = Release|Any CPU
-		{38A19B45-275B-B2AC-B63A-E939654D4958}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{38A19B45-275B-B2AC-B63A-E939654D4958}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{38A19B45-275B-B2AC-B63A-E939654D4958}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{38A19B45-275B-B2AC-B63A-E939654D4958}.Release|Any CPU.Build.0 = Release|Any CPU
+		{53852F94-F70B-169C-4BE9-D1227F6C827C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{53852F94-F70B-169C-4BE9-D1227F6C827C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{53852F94-F70B-169C-4BE9-D1227F6C827C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{53852F94-F70B-169C-4BE9-D1227F6C827C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{934C3015-FD8C-F078-D6ED-B6E0BC55A5E1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{934C3015-FD8C-F078-D6ED-B6E0BC55A5E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{934C3015-FD8C-F078-D6ED-B6E0BC55A5E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{934C3015-FD8C-F078-D6ED-B6E0BC55A5E1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -29,4 +28,3 @@ Global
 		SolutionGuid = {F93ADC11-8118-4D37-BA5B-770A46B192C6}
 	EndGlobalSection
 EndGlobal
-
