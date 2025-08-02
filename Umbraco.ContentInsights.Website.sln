@@ -1,11 +1,10 @@
-﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.12.35728.132
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleTemplate.Web", "src\SampleTemplate.Web\SampleTemplate.Web.csproj", "{BB6FEC1E-185D-09F9-868C-E6BD9713BDBD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Umbraco.ContentInsights.Website.Web", "src\Umbraco.ContentInsights.Website.Web\Umbraco.ContentInsights.Website.Web.csproj", "{BB6FEC1E-185D-09F9-868C-E6BD9713BDBD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleTemplate.Core", "src\SampleTemplate.Core\SampleTemplate.Core.csproj", "{38A19B45-275B-B2AC-B63A-E939654D4958}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Umbraco.ContentInsights.Website.Core", "src\Umbraco.ContentInsights.Website.Core\Umbraco.ContentInsights.Website.Core.csproj", "{38A19B45-275B-B2AC-B63A-E939654D4958}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
