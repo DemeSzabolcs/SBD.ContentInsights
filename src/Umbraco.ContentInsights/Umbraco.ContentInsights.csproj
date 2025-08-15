@@ -12,4 +12,11 @@
     <PackageReference Include="Umbraco.Cms.Web.Common" Version="16.1.1" />
   </ItemGroup>
 
+  <Target Name="CopyToTestWebsite" AfterTargets="Build">
+    <ItemGroup>
+      <AppPluginFiles Include="App_Plugins\ContentInsights\**\*.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(AppPluginFiles)" DestinationFiles="@(AppPluginFiles->'$(SolutionDir)src\Umbraco.ContentInsights.TestSite\App_Plugins\ContentInsights\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+  </Target>
+
 </Project>

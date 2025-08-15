@@ -1,0 +1,18 @@
+{
+  "id": "Umbraco.ContentInsights",
+  "name": "Umbraco.ContentInsights",
+  "version": "1.0.0-beta",
+  "extensions": [
+    {
+      "type": "section",
+      "alias": "Umbraco.ContentInsights",
+      "name": "Content Insights",
+      "element": "/App_Plugins/ContentInsights/client.js",
+      "elementName": "my-element",
+      "meta": {
+        "label": "Content Insights",
+        "pathname": "content-insights"
+      }
+    }
+  ]
+}
