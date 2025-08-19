@@ -25,7 +25,7 @@ public class AuthorizeAdminRoleNotificationHandler(
             return;
         }
 
-        adminGroup.AddAllowedSection("Umbraco.ContentInsights");
+        adminGroup.AddAllowedSection("Umbraco.ContentInsights.Section");
         await _userGroupService.UpdateAsync(adminGroup, Constants.Security.SuperUserKey);
     }
 }

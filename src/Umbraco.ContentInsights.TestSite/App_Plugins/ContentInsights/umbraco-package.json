@@ -4,15 +4,10 @@
   "version": "1.0.0-beta",
   "extensions": [
     {
-      "type": "section",
-      "alias": "Umbraco.ContentInsights",
-      "name": "Content Insights",
-      "element": "/App_Plugins/ContentInsights/client.js",
-      "elementName": "my-element",
-      "meta": {
-        "label": "Content Insights",
-        "pathname": "content-insights"
-      }
+      "type": "bundle",
+      "name": "Umbraco Content Insights Bundle",
+      "alias": "Umbraco.ContentInsights.Bundle",
+      "js": "/App_Plugins/ContentInsights/content-insights-bundle.js"
     }
   ]
 }

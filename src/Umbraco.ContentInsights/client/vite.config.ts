@@ -3,8 +3,9 @@ import { defineConfig } from "vite";
 export default defineConfig({
     build: {
         lib: {
-            entry: "src/my-element.ts", // your web component source file
+            entry: "src/manifests.ts", // Bundle registers one or more manifests
             formats: ["es"],
+            fileName: "content-insights-bundle",
         },
         outDir: "../App_Plugins/ContentInsights", // all compiled files will be placed here
         emptyOutDir: true,
