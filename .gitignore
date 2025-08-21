@@ -294,3 +294,6 @@ __pycache__/
 
 # Analyzers
 /.editorconfig
+
+# Local builds of the packages should be ignored.
+**/App_Plugins/*
