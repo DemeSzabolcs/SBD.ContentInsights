@@ -1,11 +1,9 @@
-using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Umbraco.Cms.Api.Management.Controllers;
 using Umbraco.Cms.Api.Management.Routing;
 using Umbraco.Cms.Core.Services;
-using Umbraco.Cms.Web.Common.Authorization;
-using Umbraco.Cms.Web.Common.Controllers;
-using Umbraco.Cms.Web.Common.Routing;
+using Umbraco.ContentInsights.Models;
 
 namespace Umbraco.ContentInsights.Controllers;
 
@@ -14,18 +12,24 @@ namespace Umbraco.ContentInsights.Controllers;
 public class ContentInsightsController : ManagementApiControllerBase
 {
     private readonly IContentTypeService _contentTypeService;
+    private readonly IContentService _contentService;
 
-    public ContentInsightsController(IContentTypeService contentTypeService) =>
+    public ContentInsightsController(IContentTypeService contentTypeService, IContentService contentService)
+    {
         _contentTypeService = contentTypeService;
+        _contentService = contentService;
+    }
 
     [HttpGet("get-content-types")]
+    [ProducesResponseType(typeof(IEnumerable<DocumentType>), StatusCodes.Status200OK)]
     public IActionResult GetContentTypes()
     {
         var types = _contentTypeService.GetAll()
-            .Select(ct => new
+            .Select(contentType => new DocumentType
             {
-                ct.Alias,
-                ct.Name
+                Alias = contentType.Alias,
+                Name = contentType.Name ?? string.Empty,
+                Count = _contentService.Count(contentType.Alias),
             });
 
         return Ok(types);
