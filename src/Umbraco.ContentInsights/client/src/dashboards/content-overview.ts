@@ -6,7 +6,7 @@ import { tryExecute } from '@umbraco-cms/backoffice/resources';
 import { faChartSimple } from '@fortawesome/free-solid-svg-icons/faChartSimple';
 import { litFontawesome } from '@weavedev/lit-fontawesome';
 import { UmbLitElement } from '@umbraco-cms/backoffice/lit-element';
-import type { DocumentType } from '../shared/types'
+import type { DocumentType, DocumentsByStatus } from '../shared/types'
 
 Chart.register(...registerables)
 
@@ -78,17 +78,11 @@ export class ContentOverview extends UmbLitElement {
             });
         }
 
-        const response = await tryExecute(this, umbHttpClient.get<DocumentType[]>({
+        const getContentTypesResponse = await tryExecute(this, umbHttpClient.get<DocumentType[]>({
             url: '/umbraco/management/api/v1/content-insights/get-content-types',
         }));
 
-        const asd = await tryExecute(this, umbHttpClient.get<DocumentType[]>({
-            url: '/umbraco/management/api/v1/content-insights/get-documents',
-        }));
-
-        asd;
-
-        let contentTypes = (response as { data: DocumentType[] }).data;
+        let contentTypes = (getContentTypesResponse as { data: DocumentType[] }).data;
 
         if (!contentTypes) return;
 
@@ -197,6 +191,14 @@ export class ContentOverview extends UmbLitElement {
             },
         })
         savedBarChart = barChart;
+
+        const getDocumentsByStatusResponse = await tryExecute(this, umbHttpClient.get<DocumentsByStatus>({
+            url: '/umbraco/management/api/v1/content-insights/get-documents-by-status',
+        }));
+
+        let documentsByStatus = (getDocumentsByStatusResponse as { data: DocumentsByStatus }).data;
+
+        console.log(documentsByStatus);
 
         //const pieChartCtx = this.renderRoot.querySelector('#contentByDocumentStatusChart') as HTMLCanvasElement;
         //const pieChart = 

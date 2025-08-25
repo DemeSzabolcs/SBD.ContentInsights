@@ -2,7 +2,7 @@ namespace Umbraco.ContentInsights.Constants;
 
 public enum DocumentStatus
 {
-    Public,
+    Published,
     Draft,
     Trashed,
 }
