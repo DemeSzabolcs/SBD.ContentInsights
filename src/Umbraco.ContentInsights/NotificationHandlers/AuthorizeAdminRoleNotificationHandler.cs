@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Logging;
-using Umbraco.Cms.Core;
 using Umbraco.Cms.Core.Events;
 using Umbraco.Cms.Core.Notifications;
 using Umbraco.Cms.Core.Services;
@@ -26,6 +25,6 @@ public class AuthorizeAdminRoleNotificationHandler(
         }
 
         adminGroup.AddAllowedSection("Umbraco.ContentInsights.Section");
-        await _userGroupService.UpdateAsync(adminGroup, Constants.Security.SuperUserKey);
+        await _userGroupService.UpdateAsync(adminGroup, Cms.Core.Constants.Security.SuperUserKey);
     }
 }

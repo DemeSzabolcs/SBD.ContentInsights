@@ -2,7 +2,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Umbraco.Cms.Api.Management.Controllers;
 using Umbraco.Cms.Api.Management.Routing;
+using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Services;
+using Umbraco.ContentInsights.Constants;
 using Umbraco.ContentInsights.Models;
 
 namespace Umbraco.ContentInsights.Controllers;
@@ -33,5 +35,71 @@ public class ContentInsightsController : ManagementApiControllerBase
             });
 
         return Ok(types);
+    }
+
+    [HttpGet("get-documents-by-status")]
+    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+    public IActionResult GetDocuments()
+    {
+        var allContent = new List<IContent>();
+
+        // Get all root documents.
+        var rootContents = _contentService.GetRootContent();
+        allContent.AddRange(rootContents);
+
+        // Get root documents' children.
+        foreach (var rootContent in rootContents)
+        {
+            var descendants = _contentService.GetPagedDescendants(rootContent.Id, 0, int.MaxValue, out _);
+
+            if (descendants != null)
+            {
+                allContent.AddRange(descendants);
+            }
+        }
+
+        // Get documents from recycle bin.
+        var trashedContent = _contentService.GetPagedContentInRecycleBin(0, int.MaxValue, out _);
+        allContent.AddRange(trashedContent);
+
+        var publicDocs = allContent
+            .Where(content => content.Published && !content.Trashed)
+            .DistinctBy(content => content.Id)
+            .Select(content => new Document
+            {
+                Status = DocumentStatus.Published,
+                Name = content.Name ?? string.Empty,
+                Link = $"/umbraco/section/content/workspace/document/edit/{content.Key}",
+            })
+            .ToList();
+
+        var draftDocs = allContent
+            .Where(content => !content.Published && !content.Trashed)
+            .DistinctBy(content => content.Id)
+            .Select(content => new Document
+            {
+                Status = DocumentStatus.Draft,
+                Name = content.Name ?? string.Empty,
+                Link = $"/umbraco/section/content/workspace/document/edit/{content.Key}",
+            })
+            .ToList();
+
+        var trashedDocs = allContent
+            .Where(content => content.Trashed)
+            .DistinctBy(content => content.Id)
+            .Select(content => new Document
+            {
+                Status = DocumentStatus.Trashed,
+                Name = content.Name ?? string.Empty,
+                Link = $"/umbraco/section/content/workspace/document/edit/{content.Key}",
+            })
+            .ToList();
+
+        return Ok(new
+        {
+            @public = publicDocs,
+            draft = draftDocs,
+            trashed = trashedDocs,
+        });
     }
 }

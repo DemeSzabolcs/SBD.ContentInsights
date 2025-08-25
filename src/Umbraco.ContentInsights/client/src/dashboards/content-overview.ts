@@ -3,17 +3,12 @@ import { customElement } from 'lit/decorators.js'
 import { Chart, registerables } from 'chart.js'
 import { umbHttpClient } from '@umbraco-cms/backoffice/http-client';
 import { tryExecute } from '@umbraco-cms/backoffice/resources';
-//import { faChartSimple } from '@fortawesome/free-solid-svg-icons/faChartSimple';
-//import { litFontawesome } from '@weavedev/lit-fontawesome';
+import { faChartSimple } from '@fortawesome/free-solid-svg-icons/faChartSimple';
+import { litFontawesome } from '@weavedev/lit-fontawesome';
 import { UmbLitElement } from '@umbraco-cms/backoffice/lit-element';
+import type { DocumentType } from '../shared/types'
 
 Chart.register(...registerables)
-
-interface DocumentType {
-    name: string;
-    label: string;
-    count: number;
-}
 
 // Chart.js has a Colors plugin, but it only works on different datasets, here we only have one.
 const barChartColors = [
@@ -26,16 +21,16 @@ const barChartColors = [
     'rgba(199, 199, 199, 0.7)',
 ];
 
-let barChart: any | null = null;
-let barChartDatasetData: any | null = null;
-let barChartLabels: any | null = null;
+let savedBarChart: any | null = null;
+let savedBarChartDatasetData: any | null = null;
+let savedBarChartLabels: any | null = null;
 
 const resetBarChart = (): void => {
-    if (!barChart || !barChartLabels || !barChartDatasetData) return
+    if (!savedBarChart || !savedBarChartLabels || !savedBarChartDatasetData) return
 
-    barChart.data.labels = [...barChartLabels];
-    barChart.data.datasets[0].data = [...barChartDatasetData];
-    barChart.update();
+    savedBarChart.data.labels = [...savedBarChartLabels];
+    savedBarChart.data.datasets[0].data = [...savedBarChartDatasetData];
+    savedBarChart.update();
 };
 
 resetBarChart();
@@ -47,6 +42,12 @@ export class ContentOverview extends UmbLitElement {
     <div class="dashboard">
         <div class="chart-section">
             <div class="chart-header">
+            <uui-icon-registry-essential>
+            <uui-icon name="favorite">
+    
+            </uui-icon>
+            </uui-icon-registry-essential>
+                ${litFontawesome(faChartSimple)}
                 <h2>Document count by Document Types</h2>
             </div>
             <div class="reset-button">
@@ -55,6 +56,14 @@ export class ContentOverview extends UmbLitElement {
             </div>
             <uui-box class="chart-box">
                 <canvas id="contentByDocumentTypeChart"></canvas>
+            </uui-box>
+        </div>
+        <div class="chart-section">
+            <div class="chart-header">
+                <h2>Document count by Document Types</h2>
+            </div>
+            <uui-box class="chart-box">
+                <canvas id="contentByDocumentStatusChart"></canvas>
             </uui-box>
         </div>
     </div>
@@ -73,18 +82,28 @@ export class ContentOverview extends UmbLitElement {
             url: '/umbraco/management/api/v1/content-insights/get-content-types',
         }));
 
-        const contentTypes = (response as { data: DocumentType[] }).data;
+        const asd = await tryExecute(this, umbHttpClient.get<DocumentType[]>({
+            url: '/umbraco/management/api/v1/content-insights/get-documents',
+        }));
+
+        asd;
+
+        let contentTypes = (response as { data: DocumentType[] }).data;
 
         if (!contentTypes) return;
+
+        contentTypes = [...contentTypes].sort(
+            (a, b) => b.count - a.count
+        );
 
         const documentNames = contentTypes.map(documentType => documentType.name);
         const documentCounts = contentTypes.map(documentType => documentType.count);
 
-        const ctx = this.renderRoot.querySelector('#contentByDocumentTypeChart') as HTMLCanvasElement;
-        const chart = new Chart(ctx, {
+        const barChartCtx = this.renderRoot.querySelector('#contentByDocumentTypeChart') as HTMLCanvasElement;
+        const barChart = new Chart(barChartCtx, {
             type: 'bar',
             data: {
-                labels: documentNames,
+                labels: [...documentNames],
                 datasets: [
                     {
                         label: 'Number of Items',
@@ -103,6 +122,7 @@ export class ContentOverview extends UmbLitElement {
                         position: 'top',
                         labels: {
                             color: 'white',
+                            boxWidth: 0,
                         },
                         onClick: () => { }
                     },
@@ -114,16 +134,16 @@ export class ContentOverview extends UmbLitElement {
                     if (!event.native) return;
 
                     const nativeEvent = event.native as MouseEvent;
-                    const rect = chart.canvas.getBoundingClientRect();
+                    const rect = barChart.canvas.getBoundingClientRect();
                     const x = nativeEvent.clientX - rect.left;
                     let closestIndex = 0;
                     let minDistance = Infinity;
 
-                    const xScale = chart.scales['x'];
+                    const xScale = barChart.scales['x'];
                     if (!xScale) return;
 
                     const datasetIndex = 0;
-                    const data = chart.data.datasets[datasetIndex].data;
+                    const data = barChart.data.datasets[datasetIndex].data;
 
                     data.forEach((_, i) => {
                         const dataPosition = xScale.getPixelForValue(i);
@@ -135,23 +155,23 @@ export class ContentOverview extends UmbLitElement {
                         }
                     });
 
-                    if (!barChartDatasetData) { 
-                        barChartDatasetData = [...data];
+                    if (!savedBarChartDatasetData) { 
+                        savedBarChartDatasetData = [...data];
                     }
 
                     data.splice(closestIndex, 1);
 
-                    const chartDataLabels = chart.data.labels
+                    const chartDataLabels = barChart.data.labels
                     
                     if (chartDataLabels) {
-                        if (!barChartLabels) {
-                            barChartLabels = [...chartDataLabels];
+                        if (!savedBarChartLabels) {
+                            savedBarChartLabels = [...chartDataLabels];
                         }
 
                         chartDataLabels.splice(closestIndex, 1);
                     }
 
-                    chart.update();
+                    barChart.update();
                 },
                 scales: {
                     y: {
@@ -176,8 +196,10 @@ export class ContentOverview extends UmbLitElement {
                 },
             },
         })
+        savedBarChart = barChart;
 
-        barChart = chart;
+        //const pieChartCtx = this.renderRoot.querySelector('#contentByDocumentStatusChart') as HTMLCanvasElement;
+        //const pieChart = 
     }
 
     static styles = css`

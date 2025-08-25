@@ -1,8 +1,8 @@
 # This script deletes the 'Data' and 'Logs' folders inside any '*.Web\umbraco' directory from the script's location.
 
-# Find all *.Web\umbraco folders under the script's directory
+# Find all *.TestSite\umbraco folders under the script's directory
 $umbracoFolders = Get-ChildItem -Path $PSScriptRoot -Recurse -Directory |
-    Where-Object { $_.FullName -match '\\src\\[^\\]+\.Web\\umbraco$' }
+    Where-Object { $_.FullName -match '\\src\\[^\\]+\.TestSite\\umbraco$' }
 
 foreach ($umbracoPath in $umbracoFolders) {
     $dataPath = Join-Path -Path $umbracoPath.FullName -ChildPath "Data"
