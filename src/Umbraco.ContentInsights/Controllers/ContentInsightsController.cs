@@ -67,9 +67,10 @@ public class ContentInsightsController : ManagementApiControllerBase
             .DistinctBy(content => content.Id)
             .Select(content => new Document
             {
-                Status = DocumentStatus.Published,
+                Status = DocumentStatus.Public,
                 Name = content.Name ?? string.Empty,
                 Link = $"/umbraco/section/content/workspace/document/edit/{content.Key}",
+                Type = content.ContentType.Alias,
             })
             .ToList();
 
@@ -81,6 +82,7 @@ public class ContentInsightsController : ManagementApiControllerBase
                 Status = DocumentStatus.Draft,
                 Name = content.Name ?? string.Empty,
                 Link = $"/umbraco/section/content/workspace/document/edit/{content.Key}",
+                Type = content.ContentType.Alias,
             })
             .ToList();
 
@@ -92,14 +94,18 @@ public class ContentInsightsController : ManagementApiControllerBase
                 Status = DocumentStatus.Trashed,
                 Name = content.Name ?? string.Empty,
                 Link = $"/umbraco/section/content/workspace/document/edit/{content.Key}",
+                Type = content.ContentType.Alias,
             })
             .ToList();
 
-        return Ok(new
+        return Ok(new DocumentsByStatus
         {
-            @public = publicDocs,
-            draft = draftDocs,
-            trashed = trashedDocs,
+            Public = publicDocs,
+            Draft = draftDocs,
+            Trashed = trashedDocs,
+            PublicCount = publicDocs.Count,
+            DraftCount = draftDocs.Count,
+            TrashedCount = trashedDocs.Count,
         });
     }
 }

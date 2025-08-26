@@ -1,24 +1,24 @@
 import { css, html } from 'lit'
 import { customElement } from 'lit/decorators.js'
 import { Chart, registerables } from 'chart.js'
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { umbHttpClient } from '@umbraco-cms/backoffice/http-client';
 import { tryExecute } from '@umbraco-cms/backoffice/resources';
-import { faChartSimple } from '@fortawesome/free-solid-svg-icons/faChartSimple';
-import { litFontawesome } from '@weavedev/lit-fontawesome';
 import { UmbLitElement } from '@umbraco-cms/backoffice/lit-element';
 import type { DocumentType, DocumentsByStatus } from '../shared/types'
+import { DocumentStatus } from '../shared/types'
+import { umbracoPath } from '@umbraco-cms/backoffice/utils';
 
-Chart.register(...registerables)
+Chart.register(...registerables);
 
 // Chart.js has a Colors plugin, but it only works on different datasets, here we only have one.
 const barChartColors = [
-    'rgba(255, 99, 132, 0.7)',
     'rgba(54, 162, 235, 0.7)',
-    'rgba(255, 206, 86, 0.7)',
-    'rgba(75, 192, 192, 0.7)',
     'rgba(153, 102, 255, 0.7)',
     'rgba(255, 159, 64, 0.7)',
-    'rgba(199, 199, 199, 0.7)',
+    'rgba(0, 128, 0, 0.7)',
+    'rgba(0, 255, 255, 0.7)',
+    'rgba(255, 0, 255, 0.7)',
 ];
 
 let savedBarChart: any | null = null;
@@ -39,15 +39,10 @@ resetBarChart();
 export class ContentOverview extends UmbLitElement {
     render() {
         return html`
-    <div class="dashboard">
+    <uui-box class="dashboard">
         <div class="chart-section">
             <div class="chart-header">
-            <uui-icon-registry-essential>
-            <uui-icon name="favorite">
-    
-            </uui-icon>
-            </uui-icon-registry-essential>
-                ${litFontawesome(faChartSimple)}
+                <uui-icon name="icon-bar-chart" style="font-size: 30px;"></uui-icon>
                 <h2>Document count by Document Types</h2>
             </div>
             <div class="reset-button">
@@ -60,13 +55,14 @@ export class ContentOverview extends UmbLitElement {
         </div>
         <div class="chart-section">
             <div class="chart-header">
-                <h2>Document count by Document Types</h2>
+                <uui-icon name="icon-pie-chart" style="font-size: 30px;"></uui-icon>
+                <h2>Document count by Document Status</h2>
             </div>
             <uui-box class="chart-box">
                 <canvas id="contentByDocumentStatusChart"></canvas>
             </uui-box>
         </div>
-    </div>
+    </uui-box>
     `
     }
 
@@ -79,12 +75,12 @@ export class ContentOverview extends UmbLitElement {
         }
 
         const getContentTypesResponse = await tryExecute(this, umbHttpClient.get<DocumentType[]>({
-            url: '/umbraco/management/api/v1/content-insights/get-content-types',
+            url: umbracoPath("/content-insights/get-content-types"),
         }));
 
-        let contentTypes = (getContentTypesResponse as { data: DocumentType[] }).data;
+        let contentTypes = getContentTypesResponse.data;
 
-        if (!contentTypes) return;
+        if (!contentTypes) return; // TO-DO add error.
 
         contentTypes = [...contentTypes].sort(
             (a, b) => b.count - a.count
@@ -149,14 +145,14 @@ export class ContentOverview extends UmbLitElement {
                         }
                     });
 
-                    if (!savedBarChartDatasetData) { 
+                    if (!savedBarChartDatasetData) {
                         savedBarChartDatasetData = [...data];
                     }
 
                     data.splice(closestIndex, 1);
 
                     const chartDataLabels = barChart.data.labels
-                    
+
                     if (chartDataLabels) {
                         if (!savedBarChartLabels) {
                             savedBarChartLabels = [...chartDataLabels];
@@ -193,15 +189,79 @@ export class ContentOverview extends UmbLitElement {
         savedBarChart = barChart;
 
         const getDocumentsByStatusResponse = await tryExecute(this, umbHttpClient.get<DocumentsByStatus>({
-            url: '/umbraco/management/api/v1/content-insights/get-documents-by-status',
+            url: umbracoPath("/content-insights/get-documents-by-status"),
         }));
 
-        let documentsByStatus = (getDocumentsByStatusResponse as { data: DocumentsByStatus }).data;
+        const documentsByStatus = getDocumentsByStatusResponse.data;
 
+        if (!documentsByStatus) return; // TO-DO add error
         console.log(documentsByStatus);
 
-        //const pieChartCtx = this.renderRoot.querySelector('#contentByDocumentStatusChart') as HTMLCanvasElement;
-        //const pieChart = 
+        const pieChartCtx = this.renderRoot.querySelector('#contentByDocumentStatusChart') as HTMLCanvasElement;
+        new Chart(pieChartCtx, {
+            type: 'pie',
+            data: {
+                labels: [
+                    DocumentStatus[DocumentStatus.Public],
+                    DocumentStatus[DocumentStatus.Draft],
+                    DocumentStatus[DocumentStatus.Trashed],
+                ],
+                datasets: [
+                    {
+                        data: [
+                            documentsByStatus.publicCount,
+                            documentsByStatus.draftCount,
+                            documentsByStatus.trashedCount,
+                        ],
+                        backgroundColor: [
+                            'rgba(75, 192, 192, 0.7)',
+                            'rgba(255, 206, 86, 0.7)',
+                            'rgba(255, 99, 132, 0.7)',
+                        ],
+                        borderColor: [
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(255, 99, 132, 1)',
+                        ],
+                        borderWidth: 1,
+                    },
+                ],
+            },
+            plugins: [ChartDataLabels],
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            color: 'white',
+                        },
+                    },
+                    datalabels: {
+                        formatter: (value, context) => {
+                            const data = context.chart.data.datasets[0].data as number[];
+                            const total = data.reduce((acc, val) => acc + val, 0);
+                            const percentage = ((value / total) * 100).toFixed(1);
+                            return `${percentage}%`;
+                        },
+                        color: 'black',
+                        font: {
+                            size: 40,
+                            weight: 'bold',
+                        },
+
+                    },
+                    title: {
+                        display: true,
+                        text: 'Content Status Distribution',
+                        color: 'white',
+                        font: {
+                            size: 16,
+                        },
+                    },
+                },
+            },
+        })
     }
 
     static styles = css`
@@ -212,7 +272,6 @@ export class ContentOverview extends UmbLitElement {
     }
 
     .dashboard {
-      background-color: #252529;
       padding: 24px;
       border-radius: 6px;
       margin-top: 40px;
@@ -226,6 +285,10 @@ export class ContentOverview extends UmbLitElement {
       display: flex;
       align-items: center;
       margin-bottom: 16px;
+    }
+
+    .chart-header > * {
+      padding-right: 10px;
     }
 
     .chart-header h2 {

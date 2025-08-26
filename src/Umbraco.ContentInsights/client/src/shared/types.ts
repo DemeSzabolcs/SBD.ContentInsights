@@ -5,24 +5,23 @@ export type DocumentType = {
 };
 
 export enum DocumentStatus {
-    Published,
+    Public,
     Draft,
     Trashed,
 }
 
-export class Document {
+export type Document = {
     status: DocumentStatus;
-    name: string = '';
-    link: string = '';
-    constructor(status: DocumentStatus, name: string = '', link: string = '') {
-        this.status = status;
-        this.name = name;
-        this.link = link;
-    }
+    name: string;
+    link: string;
+    type: string;
 }
 
 export class DocumentsByStatus {
-    published: Document[] = [];
+    public: Document[] = [];
     draft: Document[] = [];
     trashed: Document[] = [];
+    publicCount: number = 0;
+    draftCount: number = 0;
+    trashedCount: number = 0;
 }
