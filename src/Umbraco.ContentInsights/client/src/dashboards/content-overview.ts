@@ -1,5 +1,5 @@
 import { css, html } from 'lit'
-import { customElement } from 'lit/decorators.js'
+import { customElement, state } from 'lit/decorators.js'
 import { Chart, registerables } from 'chart.js'
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { umbHttpClient } from '@umbraco-cms/backoffice/http-client';
@@ -37,6 +37,9 @@ resetBarChart();
 
 @customElement('content-overview')
 export class ContentOverview extends UmbLitElement {
+    @state()
+    private _contentTypes: Option[] = [];
+
     render() {
         return html`
     <uui-box class="dashboard">
@@ -58,7 +61,8 @@ export class ContentOverview extends UmbLitElement {
                 <uui-icon name="icon-pie-chart" style="font-size: 30px;"></uui-icon>
                 <h2>Document count by Document Status</h2>
             </div>
-            <uui-box class="chart-box">
+                  <uui-select id="contentTypeSelect" .options="${this._contentTypes}"></uui-select>
+            <uui-box class="chart-box pie-chart">
                 <canvas id="contentByDocumentStatusChart"></canvas>
             </uui-box>
         </div>
@@ -85,6 +89,11 @@ export class ContentOverview extends UmbLitElement {
         contentTypes = [...contentTypes].sort(
             (a, b) => b.count - a.count
         );
+
+        this._contentTypes = [
+            { name: 'All Document Types', value: 'all', selected: true },
+            ...contentTypes.map(type => ({ name: type.name, value: type.name })),
+        ];
 
         const documentNames = contentTypes.map(documentType => documentType.name);
         const documentCounts = contentTypes.map(documentType => documentType.count);
@@ -195,7 +204,6 @@ export class ContentOverview extends UmbLitElement {
         const documentsByStatus = getDocumentsByStatusResponse.data;
 
         if (!documentsByStatus) return; // TO-DO add error
-        console.log(documentsByStatus);
 
         const pieChartCtx = this.renderRoot.querySelector('#contentByDocumentStatusChart') as HTMLCanvasElement;
         new Chart(pieChartCtx, {
@@ -310,6 +318,11 @@ export class ContentOverview extends UmbLitElement {
         display: flex;
         justify-content: space-between;
         padding-bottom: 20px;
+    }
+
+    .pie-chart {
+        margin: auto;
+        width: 70%;
     }
   `;
 }
