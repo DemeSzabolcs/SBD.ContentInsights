@@ -1,6 +1,6 @@
 export type DocumentType = {
     name: string;
-    label: string;
+    type: string;
     count: number;
 };
 

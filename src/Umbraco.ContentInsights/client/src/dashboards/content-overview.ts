@@ -25,6 +25,37 @@ let savedBarChart: any | null = null;
 let savedBarChartDatasetData: any | null = null;
 let savedBarChartLabels: any | null = null;
 
+let savedPieChart: any | null = null;
+let savedPieChartDatasetData: any | null = null;
+
+let documentsByStatusGlobal: DocumentsByStatus;
+
+const updatePieChart = (selectValue: string): void => {
+    if (!savedPieChart || !savedPieChartDatasetData || !documentsByStatusGlobal) return
+
+    if (selectValue == "all") {
+        savedPieChart.data.datasets[0].data = [...savedPieChartDatasetData];
+    }
+    else {
+        const publicCountByType = documentsByStatusGlobal.public
+            .filter(document => document.type == selectValue).length;
+
+        const draftCountByType = documentsByStatusGlobal.draft
+            .filter(document => document.type == selectValue).length;
+
+        const trashedCountByType = documentsByStatusGlobal.trashed
+            .filter(document => document.type == selectValue).length;
+
+        savedPieChart.data.datasets[0].data = [
+            publicCountByType,
+            draftCountByType,
+            trashedCountByType,
+        ];
+    }
+
+    savedPieChart.update();
+};
+
 const resetBarChart = (): void => {
     if (!savedBarChart || !savedBarChartLabels || !savedBarChartDatasetData) return
 
@@ -33,12 +64,16 @@ const resetBarChart = (): void => {
     savedBarChart.update();
 };
 
-resetBarChart();
-
 @customElement('content-overview')
 export class ContentOverview extends UmbLitElement {
     @state()
-    private _contentTypes: Option[] = [];
+    private _contentTypeAliases: Option[] = [];
+
+    private _onSelectChange(event: Event) {
+        const select = event.target as HTMLSelectElement;
+        const selectValue = select.value;
+        updatePieChart(selectValue);
+    }
 
     render() {
         return html`
@@ -61,7 +96,9 @@ export class ContentOverview extends UmbLitElement {
                 <uui-icon name="icon-pie-chart" style="font-size: 30px;"></uui-icon>
                 <h2>Document count by Document Status</h2>
             </div>
-                  <uui-select id="contentTypeSelect" .options="${this._contentTypes}"></uui-select>
+            <div class="content-type-select-container">
+                <uui-select id="contentTypeSelect" .options="${this._contentTypeAliases}" @change="${this._onSelectChange}"></uui-select>
+            </div>
             <uui-box class="chart-box pie-chart">
                 <canvas id="contentByDocumentStatusChart"></canvas>
             </uui-box>
@@ -90,9 +127,9 @@ export class ContentOverview extends UmbLitElement {
             (a, b) => b.count - a.count
         );
 
-        this._contentTypes = [
+        this._contentTypeAliases = [
             { name: 'All Document Types', value: 'all', selected: true },
-            ...contentTypes.map(type => ({ name: type.name, value: type.name })),
+            ...contentTypes.map(type => ({ name: type.name, value: type.type })),
         ];
 
         const documentNames = contentTypes.map(documentType => documentType.name);
@@ -205,8 +242,10 @@ export class ContentOverview extends UmbLitElement {
 
         if (!documentsByStatus) return; // TO-DO add error
 
+        documentsByStatusGlobal = documentsByStatus;
+
         const pieChartCtx = this.renderRoot.querySelector('#contentByDocumentStatusChart') as HTMLCanvasElement;
-        new Chart(pieChartCtx, {
+        const pieChart = new Chart(pieChartCtx, {
             type: 'pie',
             data: {
                 labels: [
@@ -270,6 +309,8 @@ export class ContentOverview extends UmbLitElement {
                 },
             },
         })
+        savedPieChart = pieChart;
+        savedPieChartDatasetData = [...pieChart.data.datasets[0].data];
     }
 
     static styles = css`
@@ -323,6 +364,11 @@ export class ContentOverview extends UmbLitElement {
     .pie-chart {
         margin: auto;
         width: 70%;
+    }
+
+    .content-type-select-container {
+        text-align: right;
+        padding-bottom: 20px;
     }
   `;
 }

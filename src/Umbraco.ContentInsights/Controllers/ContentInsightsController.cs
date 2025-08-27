@@ -29,7 +29,7 @@ public class ContentInsightsController : ManagementApiControllerBase
         var types = _contentTypeService.GetAll()
             .Select(contentType => new DocumentType
             {
-                Alias = contentType.Alias,
+                Type = contentType.Alias,
                 Name = contentType.Name ?? string.Empty,
                 Count = _contentService.Count(contentType.Alias),
             });
