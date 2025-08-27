@@ -5,9 +5,10 @@ import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { umbHttpClient } from '@umbraco-cms/backoffice/http-client';
 import { tryExecute } from '@umbraco-cms/backoffice/resources';
 import { UmbLitElement } from '@umbraco-cms/backoffice/lit-element';
-import type { DocumentType, DocumentsByStatus } from '../shared/types'
+import type { DocumentType, DocumentsByStatus, UmbracoDocument } from '../shared/types'
 import { DocumentStatus } from '../shared/types'
 import { umbracoPath } from '@umbraco-cms/backoffice/utils';
+import type { UUIPaginationElement } from '@umbraco-cms/backoffice/external/uui';
 
 Chart.register(...registerables);
 
@@ -66,8 +67,14 @@ const resetBarChart = (): void => {
 
 @customElement('content-overview')
 export class ContentOverview extends UmbLitElement {
-    @state()
-    private _contentTypeAliases: Option[] = [];
+    @state() private _contentTypeAliases: Option[] = [];
+    @state() private _hasError: boolean = false;
+
+    // Document Statuses and Types table and pagination.
+    @state() private _documents: UmbracoDocument[] = [];
+    @state() private _currentPage = 1;
+    @state() private _itemsPerPage = 10;
+
 
     private _onSelectChange(event: Event) {
         const select = event.target as HTMLSelectElement;
@@ -75,11 +82,49 @@ export class ContentOverview extends UmbLitElement {
         updatePieChart(selectValue);
     }
 
+    // Document Statuses and Types table and pagination.
+    private _getTagColor(status: DocumentStatus): 'positive' | 'warning' | 'danger' {
+        switch (status as unknown as string) {
+            case DocumentStatus[DocumentStatus.Public]:
+                return 'positive';
+            case DocumentStatus[DocumentStatus.Draft]:
+                return 'warning';
+            case DocumentStatus[DocumentStatus.Trashed]:
+                return 'danger';
+            default:
+                return 'warning';
+        }
+    }
+
+    private get _totalPages(): number {
+        return Math.ceil(this._documents.length / this._itemsPerPage);
+    }
+
+    private _onPageChange(event: CustomEvent) {
+        this._currentPage = (event.target as UUIPaginationElement).current;
+    }
+
+    private _getPaginatedItems(): UmbracoDocument[] {
+        const start = (this._currentPage - 1) * this._itemsPerPage;
+        return this._documents.slice(start, start + this._itemsPerPage);
+    }
+
     render() {
+        if (this._hasError) {
+            return html`
+            <uui-box class="dashboard">
+                <div class="error-message">
+                    <uui-icon name="icon-application-error" style="font-size: 30px;"></uui-icon>
+                    <h2>No documents were found. Try creating documents, then reload the page.</h2>
+                </div>
+            </uui-box>
+        `;
+        }
+
         return html`
     <uui-box class="dashboard">
-        <div class="chart-section">
-            <div class="chart-header">
+        <div class="dashboard-section">
+            <div class="section-header">
                 <uui-icon name="icon-bar-chart" style="font-size: 30px;"></uui-icon>
                 <h2>Document count by Document Types</h2>
             </div>
@@ -91,8 +136,8 @@ export class ContentOverview extends UmbLitElement {
                 <canvas id="contentByDocumentTypeChart"></canvas>
             </uui-box>
         </div>
-        <div class="chart-section">
-            <div class="chart-header">
+        <div class="dashboard-section">
+            <div class="section-header">
                 <uui-icon name="icon-pie-chart" style="font-size: 30px;"></uui-icon>
                 <h2>Document count by Document Status</h2>
             </div>
@@ -102,6 +147,56 @@ export class ContentOverview extends UmbLitElement {
             <uui-box class="chart-box pie-chart">
                 <canvas id="contentByDocumentStatusChart"></canvas>
             </uui-box>
+        </div>
+        <div class="dashboard-section">
+            <div class="section-header">
+                <uui-icon name="icon-bulleted-list" style="font-size: 30px;"></uui-icon>
+                <h2>Documents</h2>
+            </div>
+            <div class="content-table">
+                <table>
+                    <thead>
+                        <tr class="content-table-header">
+                            <th>Status</th>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Link</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${this._getPaginatedItems().map(item => html`
+                            <tr>
+                                <td>
+                                  <uui-tag color="${this._getTagColor(item.status)}">
+                                    ${item.status}
+                                  </uui-tag>
+                                </td>
+                                <td>${item.name}</td>
+                                <td>${item.typeName}</td>
+                                <td>
+                                    <uui-button
+                                        label="Link"
+                                        look="primary"
+                                        type="button"
+                                        href="${item.link}"
+                                        target="_blank">
+                                            Link
+                                    </uui-button>
+                                </td>
+                            </tr>
+                        `)}
+                    </tbody>
+                </table>
+                <uui-pagination
+                    firstlabel="&lt;&lt;"
+                    previouslabel="&lt;"
+                    nextlabel="&gt;"
+                    lastlabel="&gt;&gt;"
+                    .current=${this._currentPage}
+                    .total=${this._totalPages}
+                    @change="${this._onPageChange}">
+                </uui-pagination>
+            </div>
         </div>
     </uui-box>
     `
@@ -121,8 +216,11 @@ export class ContentOverview extends UmbLitElement {
 
         let contentTypes = getContentTypesResponse.data;
 
-        if (!contentTypes) return; // TO-DO add error.
-
+        if (!contentTypes) {
+            this._hasError = true;
+            return;
+        }
+            
         contentTypes = [...contentTypes].sort(
             (a, b) => b.count - a.count
         );
@@ -240,7 +338,16 @@ export class ContentOverview extends UmbLitElement {
 
         const documentsByStatus = getDocumentsByStatusResponse.data;
 
-        if (!documentsByStatus) return; // TO-DO add error
+        if (!documentsByStatus) {
+            this._hasError = true;
+            return;
+        }
+
+        this._documents = [
+            ...documentsByStatus.public,
+            ...documentsByStatus.draft,
+            ...documentsByStatus.trashed,
+        ];
 
         documentsByStatusGlobal = documentsByStatus;
 
@@ -326,21 +433,21 @@ export class ContentOverview extends UmbLitElement {
       margin-top: 40px;
     }
 
-    .chart-section {
+    .dashboard-section {
       margin-bottom: 32px;
     }
 
-    .chart-header {
+    .section-header {
       display: flex;
       align-items: center;
       margin-bottom: 16px;
     }
 
-    .chart-header > * {
+    .section-header > * {
       padding-right: 10px;
     }
 
-    .chart-header h2 {
+    .section-header h2 {
       font-size: 20px;
       font-weight: 600;
     }
@@ -369,6 +476,38 @@ export class ContentOverview extends UmbLitElement {
     .content-type-select-container {
         text-align: right;
         padding-bottom: 20px;
+    }
+
+    .error-message {
+        color: red;
+        font-weight: bold;
+        padding: 1rem;
+        display: flex;
+        align-items: center;
+    }
+
+    .error-message > * {
+      padding-right: 10px;
+    }
+    .content-table > table {
+        width: 100%;
+     }
+
+    .content-table-header {
+        text-align: left;
+    }
+
+    .content-table-header > th:nth-child(1),
+    .content-table-header > th:nth-child(4) {
+      width: 10%;
+    }
+
+    .content-table-header > th:nth-child(2) {
+      width: 45%;
+    }
+
+    .content-table-header > th:nth-child(3) {
+      width: 35%;
     }
   `;
 }

@@ -71,6 +71,7 @@ public class ContentInsightsController : ManagementApiControllerBase
                 Name = content.Name ?? string.Empty,
                 Link = $"/umbraco/section/content/workspace/document/edit/{content.Key}",
                 Type = content.ContentType.Alias,
+                TypeName = content.ContentType.Name ?? string.Empty,
             })
             .ToList();
 
@@ -83,6 +84,7 @@ public class ContentInsightsController : ManagementApiControllerBase
                 Name = content.Name ?? string.Empty,
                 Link = $"/umbraco/section/content/workspace/document/edit/{content.Key}",
                 Type = content.ContentType.Alias,
+                TypeName = content.ContentType.Name ?? string.Empty,
             })
             .ToList();
 
@@ -95,6 +97,7 @@ public class ContentInsightsController : ManagementApiControllerBase
                 Name = content.Name ?? string.Empty,
                 Link = $"/umbraco/section/content/workspace/document/edit/{content.Key}",
                 Type = content.ContentType.Alias,
+                TypeName = content.ContentType.Name ?? string.Empty,
             })
             .ToList();
 
