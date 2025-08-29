@@ -29,12 +29,12 @@ Chart.register(...registerables);
         @state() private contentTypeAliases: Option[] = [];
         @state() private hasError: boolean = false;
 
-        @state() private savedBarChart: Chart | null = null;
-        @state() private savedBarChartDatasetData: number[] | null = null;
-        @state() private savedBarChartLabels: string[] | null = null;
+        private savedBarChart: Chart | null = null;
+        private savedBarChartDatasetData: number[] | null = null;
+        private savedBarChartLabels: string[] | null = null;
 
-        @state() private savedPieChart: Chart | null = null;
-        @state() private savedPieChartDatasetData: number[] | null = null;
+        private savedPieChart: Chart | null = null;
+        private savedPieChartDatasetData: number[] | null = null;
 
         @state() private documentsByStatusGlobal: DocumentsByStatus | null = null;
 
@@ -161,7 +161,7 @@ Chart.register(...registerables);
             </div>
             <div class="reset-button">
                 <p>Click on the bars to remove them, click on reset to reset the chart.</p>
-                <uui-button id="resetButton" type="button" look="primary" color="danger" label="Reset"></uui-button>
+                <uui-button type="button" look="primary" color="danger" label="Reset" @click=${this.resetBarChart}></uui-button>
             </div>
             <uui-box class="chart-box">
                 <canvas id="contentByDocumentTypeChart"></canvas>
@@ -173,7 +173,7 @@ Chart.register(...registerables);
                 <h2>Document count by Document Status</h2>
             </div>
             <div class="content-type-select-container">
-                <uui-select id="contentTypeSelect" .options="${this.contentTypeAliases}" @change="${this.onSelectChange}"></uui-select>
+                <uui-select id="contentTypeSelect" .options=${this.contentTypeAliases} @change=${this.onSelectChange}></uui-select>
             </div>
             <uui-box class="chart-box pie-chart">
                 <canvas id="contentByDocumentStatusChart"></canvas>
@@ -223,14 +223,7 @@ Chart.register(...registerables);
                                 <td>${item.name}</td>
                                 <td>${item.typeName}</td>
                                 <td>
-                                    <uui-button
-                                        label="Link"
-                                        look="primary"
-                                        type="button"
-                                        href="${item.link}"
-                                        target="_blank">
-                                            Link
-                                    </uui-button>
+                                    <uui-button label="Link" look="primary" type="button" href="${item.link}" target="_blank" label="Link"></uui-button>
                                 </td>
                             </tr>
                         `)}
@@ -252,13 +245,6 @@ Chart.register(...registerables);
         }
 
         async firstUpdated() {
-            const resetBtn = this.renderRoot.querySelector('#resetButton') as HTMLElement;
-            if (resetBtn) {
-                resetBtn.addEventListener('click', () => {
-                    this.resetBarChart();
-                });
-            }
-
             const getContentTypesResponse = await tryExecute(this, umbHttpClient.get<DocumentType[]>({
                 url: umbracoPath("/content-insights/get-content-types"),
             }));
@@ -279,14 +265,13 @@ Chart.register(...registerables);
                 ...contentTypes.map(type => ({ name: type.name, value: type.type })),
             ];
 
-            const documentNames = contentTypes.map(documentType => documentType.name);
             const documentCounts = contentTypes.map(documentType => documentType.count);
 
             const barChartCtx = this.renderRoot.querySelector('#contentByDocumentTypeChart') as HTMLCanvasElement;
             const barChart = new Chart(barChartCtx, {
                 type: 'bar',
                 data: {
-                    labels: [...documentNames],
+                    labels: contentTypes.map(documentType => documentType.name),
                     datasets: [
                         {
                             label: 'Number of Items',
