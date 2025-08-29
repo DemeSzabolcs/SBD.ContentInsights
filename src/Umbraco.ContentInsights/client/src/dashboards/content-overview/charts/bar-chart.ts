@@ -7,7 +7,7 @@ export function createBarChart(
     documentTypes: DocumentType[],
     documentCounts: number[],
     savedBarChartDatasetData: number[] | null,
-    savedBarChartLabels: string[] | null): { barChart: Chart; datasetData: number[] | null; labels: string[] | null} {
+    savedBarChartLabels: string[] | null): { barChart: Chart; barChartDatasetData: number[] | null; labels: string[] | null} {
     const barChart = new Chart(barChartCtx, {
         type: 'bar',
         data: {
@@ -108,8 +108,8 @@ export function createBarChart(
         savedBarChartLabels = [...barChart.data.labels];
     }
 
-    const datasetData = savedBarChartDatasetData;
+    const barChartDatasetData = savedBarChartDatasetData;
     const labels = savedBarChartLabels;
 
-    return { barChart, datasetData, labels };;
+    return { barChart, barChartDatasetData, labels };
 }
