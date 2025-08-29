@@ -26,7 +26,7 @@ Chart.register(...registerables);
 
     @customElement('content-overview')
     export class ContentOverview extends UmbLitElement {
-        @state() private contentTypeAliases: Option[] = [];
+        @state() private documentTypeSelectOptions: Option[] = [];
         @state() private hasError: boolean = false;
 
         private savedBarChart: Chart | null = null;
@@ -173,7 +173,7 @@ Chart.register(...registerables);
                 <h2>Document count by Document Status</h2>
             </div>
             <div class="content-type-select-container">
-                <uui-select id="contentTypeSelect" .options=${this.contentTypeAliases} @change=${this.onSelectChange}></uui-select>
+                <uui-select id="contentTypeSelect" .options=${this.documentTypeSelectOptions} @change=${this.onSelectChange}></uui-select>
             </div>
             <uui-box class="chart-box pie-chart">
                 <canvas id="contentByDocumentStatusChart"></canvas>
@@ -249,29 +249,25 @@ Chart.register(...registerables);
                 url: umbracoPath("/content-insights/get-content-types"),
             }));
 
-            let contentTypes = getContentTypesResponse.data;
+            let documentTypes = getContentTypesResponse.data;
 
-            if (!contentTypes) {
+            if (!documentTypes) {
                 this.hasError = true;
                 return;
             }
 
-            contentTypes = [...contentTypes].sort(
-                (a, b) => b.count - a.count
-            );
-
-            this.contentTypeAliases = [
+            this.documentTypeSelectOptions = [
                 { name: 'All Document Types', value: 'all', selected: true },
-                ...contentTypes.map(type => ({ name: type.name, value: type.type })),
+                ...documentTypes.map(type => ({ name: type.name, value: type.type })),
             ];
 
-            const documentCounts = contentTypes.map(documentType => documentType.count);
+            const documentCounts = documentTypes.map(documentType => documentType.count);
 
             const barChartCtx = this.renderRoot.querySelector('#contentByDocumentTypeChart') as HTMLCanvasElement;
             const barChart = new Chart(barChartCtx, {
                 type: 'bar',
                 data: {
-                    labels: contentTypes.map(documentType => documentType.name),
+                    labels: documentTypes.map(documentType => documentType.name),
                     datasets: [
                         {
                             label: 'Number of Items',

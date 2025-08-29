@@ -34,6 +34,8 @@ public class ContentInsightsController : ManagementApiControllerBase
                 Count = _contentService.Count(contentType.Alias),
             });
 
+        types = types.OrderByDescending(type => type.Count);
+
         return Ok(types);
     }
 
