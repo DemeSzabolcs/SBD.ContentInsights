@@ -1,174 +1,145 @@
-import { css, html } from 'lit'
-import { customElement, state } from 'lit/decorators.js'
-import { Chart, registerables } from 'chart.js'
+// External libraries.
+import { css, html } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { Chart, registerables } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
+
+// Umbraco backoffice modules.
 import { umbHttpClient } from '@umbraco-cms/backoffice/http-client';
 import { tryExecute } from '@umbraco-cms/backoffice/resources';
 import { UmbLitElement } from '@umbraco-cms/backoffice/lit-element';
-import type { DocumentType, DocumentsByStatus, UmbracoDocument } from '../shared/types'
-import { DocumentStatus } from '../shared/types'
 import { umbracoPath } from '@umbraco-cms/backoffice/utils';
 import type { UUIPaginationElement } from '@umbraco-cms/backoffice/external/uui';
 
+// Types.
+import type { DocumentType, DocumentsByStatus, UmbracoDocument } from '../shared/types';
+import { DocumentStatus } from '../shared/types';
+
+// Shared utilities, constants.
+import { convertDocumentStatusToNumberString, getTagColor } from '../shared/utils';
+import { barChartColors } from '../shared/constants';
+
 Chart.register(...registerables);
 
-// Chart.js has a Colors plugin, but it only works on different datasets, here we only have one.
-const barChartColors = [
-    'rgba(54, 162, 235, 0.7)',
-    'rgba(153, 102, 255, 0.7)',
-    'rgba(255, 159, 64, 0.7)',
-    'rgba(0, 128, 0, 0.7)',
-    'rgba(0, 255, 255, 0.7)',
-    'rgba(255, 0, 255, 0.7)',
-];
+    @customElement('content-overview')
+    export class ContentOverview extends UmbLitElement {
+        @state() private _contentTypeAliases: Option[] = [];
+        @state() private _hasError: boolean = false;
 
-let savedBarChart: any | null = null;
-let savedBarChartDatasetData: any | null = null;
-let savedBarChartLabels: any | null = null;
+        @state() savedBarChart: Chart | null = null;
+        @state() savedBarChartDatasetData: number[] | null = null;
+        @state() savedBarChartLabels: string[] | null = null;
 
-let savedPieChart: any | null = null;
-let savedPieChartDatasetData: any | null = null;
+        @state() savedPieChart: Chart | null = null;
+        @state() savedPieChartDatasetData: number[] | null = null;
 
-let documentsByStatusGlobal: DocumentsByStatus;
+        @state() documentsByStatusGlobal: DocumentsByStatus | null = null;
 
-const updatePieChart = (selectValue: string): void => {
-    if (!savedPieChart || !savedPieChartDatasetData || !documentsByStatusGlobal) return
+        // Document Statuses and Types table, sorting and pagination.
+        @state() private _documents: UmbracoDocument[] = [];
+        @state() private _currentPage = 1;
+        @state() private _itemsPerPage = 10;
+        @state() private _sortColumn: 'status' | 'name' | 'type' | null = null;
+        @state() private _sortDescending: boolean = false;
 
-    if (selectValue == "all") {
-        savedPieChart.data.datasets[0].data = [...savedPieChartDatasetData];
-    }
-    else {
-        const publicCountByType = documentsByStatusGlobal.public
-            .filter(document => document.type == selectValue).length;
+        private _updatePieChart(selectValue: string): void {
+            if (!this.savedPieChart || !this.savedPieChartDatasetData || !this.documentsByStatusGlobal) return
 
-        const draftCountByType = documentsByStatusGlobal.draft
-            .filter(document => document.type == selectValue).length;
+            if (selectValue == "all") {
+                this.savedPieChart.data.datasets[0].data = [...this.savedPieChartDatasetData];
+            }
+            else {
+                const publicCountByType = this.documentsByStatusGlobal.public
+                    .filter(document => document.type == selectValue).length;
 
-        const trashedCountByType = documentsByStatusGlobal.trashed
-            .filter(document => document.type == selectValue).length;
+                const draftCountByType = this.documentsByStatusGlobal.draft
+                    .filter(document => document.type == selectValue).length;
 
-        savedPieChart.data.datasets[0].data = [
-            publicCountByType,
-            draftCountByType,
-            trashedCountByType,
-        ];
-    }
+                const trashedCountByType = this.documentsByStatusGlobal.trashed
+                    .filter(document => document.type == selectValue).length;
 
-    savedPieChart.update();
-};
-
-const resetBarChart = (): void => {
-    if (!savedBarChart || !savedBarChartLabels || !savedBarChartDatasetData) return
-
-    savedBarChart.data.labels = [...savedBarChartLabels];
-    savedBarChart.data.datasets[0].data = [...savedBarChartDatasetData];
-    savedBarChart.update();
-};
-
-const convertDocumentStatusToNumberString = (documentStatus: DocumentStatus): string => {
-    switch (documentStatus as unknown as string) {
-        case DocumentStatus[DocumentStatus.Public]:
-            return "0";
-        case DocumentStatus[DocumentStatus.Draft]:
-            return "1";
-        case DocumentStatus[DocumentStatus.Trashed]:
-            return "2";
-        default:
-            return "0";
-    }
-}
-
-@customElement('content-overview')
-export class ContentOverview extends UmbLitElement {
-    @state() private _contentTypeAliases: Option[] = [];
-    @state() private _hasError: boolean = false;
-
-    // Document Statuses and Types table, sorting and pagination.
-    @state() private _documents: UmbracoDocument[] = [];
-    @state() private _currentPage = 1;
-    @state() private _itemsPerPage = 10;
-    @state() private _sortColumn: 'status' | 'name' | 'type' | null = null;
-    @state() private _sortDescending: boolean = false;
-
-    // Document Statuses and Types table and pagination.
-    private _getTagColor(status: DocumentStatus): 'positive' | 'warning' | 'danger' {
-        switch (status as unknown as string) {
-            case DocumentStatus[DocumentStatus.Public]:
-                return 'positive';
-            case DocumentStatus[DocumentStatus.Draft]:
-                return 'warning';
-            case DocumentStatus[DocumentStatus.Trashed]:
-                return 'danger';
-            default:
-                return 'warning';
-        }
-    }
-
-    private get _totalPages(): number {
-        return Math.ceil(this._documents.length / this._itemsPerPage);
-    }
-
-    private _onPageChange(event: CustomEvent) {
-        this._currentPage = (event.target as UUIPaginationElement).current;
-    }
-
-    private _getPaginatedItems(): UmbracoDocument[] {
-        const sorted = this._getSortedDocuments();
-        const start = (this._currentPage - 1) * this._itemsPerPage;
-        return sorted.slice(start, start + this._itemsPerPage);
-    }
-
-    private _onSort(column: 'status' | 'name' | 'type') {
-        if (this._sortColumn === column) {
-            // toggle direction
-            this._sortDescending = !this._sortDescending;
-        } else {
-            // switch to new column
-            this._sortColumn = column;
-            this._sortDescending = false; // default ascending
-        }
-        this.requestUpdate();
-    }
-
-    private _getSortedDocuments(): UmbracoDocument[] {
-        let docs = [...this._documents];
-        if (!this._sortColumn) return docs;
-
-        docs.sort((a, b) => {
-            let aValue: string = '';
-            let bValue: string = '';
-
-            switch (this._sortColumn) {
-                case 'status':
-                    aValue = convertDocumentStatusToNumberString(a.status);
-                    bValue = convertDocumentStatusToNumberString(b.status);
-                    break;
-                case 'name':
-                    aValue = a.name;
-                    bValue = b.name;
-                    break;
-                case 'type':
-                    aValue = a.typeName;
-                    bValue = b.typeName;
-                    break;
+                this.savedPieChart.data.datasets[0].data = [
+                    publicCountByType,
+                    draftCountByType,
+                    trashedCountByType,
+                ];
             }
 
-            const result = aValue.localeCompare(bValue, undefined, { numeric: true });
-            return this._sortDescending ? -result : result;
-        });
+            this.savedPieChart.update();
+        };
 
-        return docs;
-    }
+        private _resetBarChart (): void {
+            if (!this.savedBarChart || !this.savedBarChartLabels || !this.savedBarChartDatasetData) return
+
+            this.savedBarChart.data.labels = [...this.savedBarChartLabels];
+            this.savedBarChart.data.datasets[0].data = [...this.savedBarChartDatasetData];
+            this.savedBarChart.update();
+        };
+
+        // Document Statuses and Types table and pagination.
+        private get _totalPages(): number {
+            return Math.ceil(this._documents.length / this._itemsPerPage);
+        }
+
+        private _onPageChange(event: CustomEvent) {
+            this._currentPage = (event.target as UUIPaginationElement).current;
+        }
+
+        private _getPaginatedItems(): UmbracoDocument[] {
+            const sorted = this._getSortedDocuments();
+            const start = (this._currentPage - 1) * this._itemsPerPage;
+            return sorted.slice(start, start + this._itemsPerPage);
+        }
+
+        private _onSort(column: 'status' | 'name' | 'type') {
+            if (this._sortColumn === column) {
+                this._sortDescending = !this._sortDescending;
+            } else {
+                this._sortColumn = column;
+                this._sortDescending = false;
+            }
+            this.requestUpdate();
+        }
+
+        private _getSortedDocuments(): UmbracoDocument[] {
+            let docs = [...this._documents];
+            if (!this._sortColumn) return docs;
+
+            docs.sort((a, b) => {
+                let aValue: string = '';
+                let bValue: string = '';
+
+                switch (this._sortColumn) {
+                    case 'status':
+                        aValue = convertDocumentStatusToNumberString(a.status);
+                        bValue = convertDocumentStatusToNumberString(b.status);
+                        break;
+                    case 'name':
+                        aValue = a.name;
+                        bValue = b.name;
+                        break;
+                    case 'type':
+                        aValue = a.typeName;
+                        bValue = b.typeName;
+                        break;
+                }
+
+                const result = aValue.localeCompare(bValue, undefined, { numeric: true });
+                return this._sortDescending ? -result : result;
+            });
+
+            return docs;
+        }
 
         private _onSelectChange(event: Event) {
-        const select = event.target as HTMLSelectElement;
-        const selectValue = select.value;
-        updatePieChart(selectValue);
-    }
+            const select = event.target as HTMLSelectElement;
+            const selectValue = select.value;
+            this._updatePieChart(selectValue);
+        }
 
-    render() {
-        if (this._hasError) {
-            return html`
+        render() {
+            if (this._hasError) {
+                return html`
             <uui-box class="dashboard">
                 <div class="error-message">
                     <uui-icon name="icon-application-error" style="font-size: 30px;"></uui-icon>
@@ -176,9 +147,9 @@ export class ContentOverview extends UmbLitElement {
                 </div>
             </uui-box>
         `;
-        }
+            }
 
-        return html`
+            return html`
     <uui-box class="dashboard">
         <div class="dashboard-section">
             <div class="section-header">
@@ -242,7 +213,7 @@ export class ContentOverview extends UmbLitElement {
                         ${this._getPaginatedItems().map(item => html`
                             <tr>
                                 <td>
-                                  <uui-tag color="${this._getTagColor(item.status)}">
+                                  <uui-tag color="${getTagColor(item.status)}">
                                     ${item.status}
                                   </uui-tag>
                                 </td>
@@ -275,227 +246,227 @@ export class ContentOverview extends UmbLitElement {
         </div>
     </uui-box>
     `
-    }
-
-    async firstUpdated() {
-        const resetBtn = this.renderRoot.querySelector('#resetButton') as HTMLElement;
-        if (resetBtn) {
-            resetBtn.addEventListener('click', () => {
-                resetBarChart();
-            });
         }
 
-        const getContentTypesResponse = await tryExecute(this, umbHttpClient.get<DocumentType[]>({
-            url: umbracoPath("/content-insights/get-content-types"),
-        }));
+        async firstUpdated() {
+            const resetBtn = this.renderRoot.querySelector('#resetButton') as HTMLElement;
+            if (resetBtn) {
+                resetBtn.addEventListener('click', () => {
+                    this._resetBarChart();
+                });
+            }
 
-        let contentTypes = getContentTypesResponse.data;
+            const getContentTypesResponse = await tryExecute(this, umbHttpClient.get<DocumentType[]>({
+                url: umbracoPath("/content-insights/get-content-types"),
+            }));
 
-        if (!contentTypes) {
-            this._hasError = true;
-            return;
-        }
-            
-        contentTypes = [...contentTypes].sort(
-            (a, b) => b.count - a.count
-        );
+            let contentTypes = getContentTypesResponse.data;
 
-        this._contentTypeAliases = [
-            { name: 'All Document Types', value: 'all', selected: true },
-            ...contentTypes.map(type => ({ name: type.name, value: type.type })),
-        ];
+            if (!contentTypes) {
+                this._hasError = true;
+                return;
+            }
 
-        const documentNames = contentTypes.map(documentType => documentType.name);
-        const documentCounts = contentTypes.map(documentType => documentType.count);
+            contentTypes = [...contentTypes].sort(
+                (a, b) => b.count - a.count
+            );
 
-        const barChartCtx = this.renderRoot.querySelector('#contentByDocumentTypeChart') as HTMLCanvasElement;
-        const barChart = new Chart(barChartCtx, {
-            type: 'bar',
-            data: {
-                labels: [...documentNames],
-                datasets: [
-                    {
-                        label: 'Number of Items',
-                        data: [...documentCounts],
-                        backgroundColor: documentCounts.map((_, i) => barChartColors[i % barChartColors.length]),
-                        borderColor: documentCounts.map((_, i) => barChartColors[i % barChartColors.length]),
-                        borderWidth: 1,
-                    },
-                ],
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        display: true,
-                        position: 'top',
-                        labels: {
-                            color: 'white',
-                            boxWidth: 0,
+            this._contentTypeAliases = [
+                { name: 'All Document Types', value: 'all', selected: true },
+                ...contentTypes.map(type => ({ name: type.name, value: type.type })),
+            ];
+
+            const documentNames = contentTypes.map(documentType => documentType.name);
+            const documentCounts = contentTypes.map(documentType => documentType.count);
+
+            const barChartCtx = this.renderRoot.querySelector('#contentByDocumentTypeChart') as HTMLCanvasElement;
+            const barChart = new Chart(barChartCtx, {
+                type: 'bar',
+                data: {
+                    labels: [...documentNames],
+                    datasets: [
+                        {
+                            label: 'Number of Items',
+                            data: [...documentCounts],
+                            backgroundColor: documentCounts.map((_, i) => barChartColors[i % barChartColors.length]),
+                            borderColor: documentCounts.map((_, i) => barChartColors[i % barChartColors.length]),
+                            borderWidth: 1,
                         },
-                        onClick: () => { }
-                    },
-                    title: {
-                        display: false,
-                    },
+                    ],
                 },
-                onClick: (event) => {
-                    if (!event.native) return;
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                color: 'white',
+                                boxWidth: 0,
+                            },
+                            onClick: () => { }
+                        },
+                        title: {
+                            display: false,
+                        },
+                    },
+                    onClick: (event) => {
+                        if (!event.native) return;
 
-                    const nativeEvent = event.native as MouseEvent;
-                    const rect = barChart.canvas.getBoundingClientRect();
-                    const x = nativeEvent.clientX - rect.left;
-                    let closestIndex = 0;
-                    let minDistance = Infinity;
+                        const nativeEvent = event.native as MouseEvent;
+                        const rect = barChart.canvas.getBoundingClientRect();
+                        const x = nativeEvent.clientX - rect.left;
+                        let closestIndex = 0;
+                        let minDistance = Infinity;
 
-                    const xScale = barChart.scales['x'];
-                    if (!xScale) return;
+                        const xScale = barChart.scales['x'];
+                        if (!xScale) return;
 
-                    const datasetIndex = 0;
-                    const data = barChart.data.datasets[datasetIndex].data;
+                        const datasetIndex = 0;
+                        const data = barChart.data.datasets[datasetIndex].data;
 
-                    data.forEach((_, i) => {
-                        const dataPosition = xScale.getPixelForValue(i);
+                        data.forEach((_, i) => {
+                            const dataPosition = xScale.getPixelForValue(i);
 
-                        const distance = Math.abs(x - dataPosition);
-                        if (distance < minDistance) {
-                            minDistance = distance;
-                            closestIndex = i;
-                        }
-                    });
+                            const distance = Math.abs(x - dataPosition);
+                            if (distance < minDistance) {
+                                minDistance = distance;
+                                closestIndex = i;
+                            }
+                        });
 
-                    if (!savedBarChartDatasetData) {
-                        savedBarChartDatasetData = [...data];
-                    }
-
-                    data.splice(closestIndex, 1);
-
-                    const chartDataLabels = barChart.data.labels
-
-                    if (chartDataLabels) {
-                        if (!savedBarChartLabels) {
-                            savedBarChartLabels = [...chartDataLabels];
+                        if (!this.savedBarChartDatasetData) {
+                            this.savedBarChartDatasetData = [...data];
                         }
 
-                        chartDataLabels.splice(closestIndex, 1);
-                    }
+                        data.splice(closestIndex, 1);
 
-                    barChart.update();
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            color: 'white',
-                            precision: 0,
-                            stepSize: 1,
+                        const chartDataLabels = barChart.data.labels
+
+                        if (chartDataLabels) {
+                            if (!this.savedBarChartLabels) {
+                                this.savedBarChartLabels = [...chartDataLabels];
+                            }
+
+                            chartDataLabels.splice(closestIndex, 1);
+                        }
+
+                        barChart.update();
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                color: 'white',
+                                precision: 0,
+                                stepSize: 1,
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)',
+                            },
                         },
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.1)',
+                        x: {
+                            ticks: {
+                                color: 'white',
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)',
+                            },
                         },
                     },
-                    x: {
-                        ticks: {
-                            color: 'white',
+                },
+            })
+            this.savedBarChart = barChart;
+
+            const getDocumentsByStatusResponse = await tryExecute(this, umbHttpClient.get<DocumentsByStatus>({
+                url: umbracoPath("/content-insights/get-documents-by-status"),
+            }));
+
+            const documentsByStatus = getDocumentsByStatusResponse.data;
+
+            if (!documentsByStatus) {
+                this._hasError = true;
+                return;
+            }
+
+            this._documents = [
+                ...documentsByStatus.public,
+                ...documentsByStatus.draft,
+                ...documentsByStatus.trashed,
+            ];
+
+            this.documentsByStatusGlobal = documentsByStatus;
+
+            const pieChartCtx = this.renderRoot.querySelector('#contentByDocumentStatusChart') as HTMLCanvasElement;
+            const pieChart = new Chart(pieChartCtx, {
+                type: 'pie',
+                data: {
+                    labels: [
+                        DocumentStatus[DocumentStatus.Public],
+                        DocumentStatus[DocumentStatus.Draft],
+                        DocumentStatus[DocumentStatus.Trashed],
+                    ],
+                    datasets: [
+                        {
+                            data: [
+                                documentsByStatus.publicCount,
+                                documentsByStatus.draftCount,
+                                documentsByStatus.trashedCount,
+                            ],
+                            backgroundColor: [
+                                'rgba(75, 192, 192, 0.7)',
+                                'rgba(255, 206, 86, 0.7)',
+                                'rgba(255, 99, 132, 0.7)',
+                            ],
+                            borderColor: [
+                                'rgba(75, 192, 192, 1)',
+                                'rgba(255, 206, 86, 1)',
+                                'rgba(255, 99, 132, 1)',
+                            ],
+                            borderWidth: 1,
                         },
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.1)',
+                    ],
+                },
+                plugins: [ChartDataLabels],
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                color: 'white',
+                            },
+                        },
+                        datalabels: {
+                            formatter: (value, context) => {
+                                const data = context.chart.data.datasets[0].data as number[];
+                                const total = data.reduce((acc, val) => acc + val, 0);
+                                const percentage = ((value / total) * 100).toFixed(1);
+                                return `${percentage}%`;
+                            },
+                            color: 'black',
+                            font: {
+                                size: 40,
+                                weight: 'bold',
+                            },
+
+                        },
+                        title: {
+                            display: true,
+                            text: 'Content Status Distribution',
+                            color: 'white',
+                            font: {
+                                size: 16,
+                            },
                         },
                     },
                 },
-            },
-        })
-        savedBarChart = barChart;
-
-        const getDocumentsByStatusResponse = await tryExecute(this, umbHttpClient.get<DocumentsByStatus>({
-            url: umbracoPath("/content-insights/get-documents-by-status"),
-        }));
-
-        const documentsByStatus = getDocumentsByStatusResponse.data;
-
-        if (!documentsByStatus) {
-            this._hasError = true;
-            return;
+            })
+            this.savedPieChart = pieChart;
+            this.savedPieChartDatasetData = [...pieChart.data.datasets[0].data];
         }
 
-        this._documents = [
-            ...documentsByStatus.public,
-            ...documentsByStatus.draft,
-            ...documentsByStatus.trashed,
-        ];
-
-        documentsByStatusGlobal = documentsByStatus;
-
-        const pieChartCtx = this.renderRoot.querySelector('#contentByDocumentStatusChart') as HTMLCanvasElement;
-        const pieChart = new Chart(pieChartCtx, {
-            type: 'pie',
-            data: {
-                labels: [
-                    DocumentStatus[DocumentStatus.Public],
-                    DocumentStatus[DocumentStatus.Draft],
-                    DocumentStatus[DocumentStatus.Trashed],
-                ],
-                datasets: [
-                    {
-                        data: [
-                            documentsByStatus.publicCount,
-                            documentsByStatus.draftCount,
-                            documentsByStatus.trashedCount,
-                        ],
-                        backgroundColor: [
-                            'rgba(75, 192, 192, 0.7)',
-                            'rgba(255, 206, 86, 0.7)',
-                            'rgba(255, 99, 132, 0.7)',
-                        ],
-                        borderColor: [
-                            'rgba(75, 192, 192, 1)',
-                            'rgba(255, 206, 86, 1)',
-                            'rgba(255, 99, 132, 1)',
-                        ],
-                        borderWidth: 1,
-                    },
-                ],
-            },
-            plugins: [ChartDataLabels],
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                        labels: {
-                            color: 'white',
-                        },
-                    },
-                    datalabels: {
-                        formatter: (value, context) => {
-                            const data = context.chart.data.datasets[0].data as number[];
-                            const total = data.reduce((acc, val) => acc + val, 0);
-                            const percentage = ((value / total) * 100).toFixed(1);
-                            return `${percentage}%`;
-                        },
-                        color: 'black',
-                        font: {
-                            size: 40,
-                            weight: 'bold',
-                        },
-
-                    },
-                    title: {
-                        display: true,
-                        text: 'Content Status Distribution',
-                        color: 'white',
-                        font: {
-                            size: 16,
-                        },
-                    },
-                },
-            },
-        })
-        savedPieChart = pieChart;
-        savedPieChartDatasetData = [...pieChart.data.datasets[0].data];
-    }
-
-    static styles = css`
+        static styles = css`
     :host {
       display: block;
       max-width: 1000px;
@@ -590,10 +561,10 @@ export class ContentOverview extends UmbLitElement {
       width: 35%;
     }
   `;
-}
-
-declare global {
-    interface HTMLElementTagNameMap {
-        'content-overview': ContentOverview
     }
-}
+
+    declare global {
+        interface HTMLElementTagNameMap {
+            'content-overview': ContentOverview
+        }
+    }
