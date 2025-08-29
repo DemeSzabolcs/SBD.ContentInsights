@@ -13,7 +13,6 @@ export const convertDocumentStatusToNumberString = (documentStatus: DocumentStat
     }
 }
 
-
 export const getTagColor = (status: DocumentStatus): 'positive' | 'warning' | 'danger' => {
     switch (status as unknown as string) {
         case DocumentStatus[DocumentStatus.Public]:

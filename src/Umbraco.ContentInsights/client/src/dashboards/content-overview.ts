@@ -26,26 +26,26 @@ Chart.register(...registerables);
 
     @customElement('content-overview')
     export class ContentOverview extends UmbLitElement {
-        @state() private _contentTypeAliases: Option[] = [];
-        @state() private _hasError: boolean = false;
+        @state() private contentTypeAliases: Option[] = [];
+        @state() private hasError: boolean = false;
 
-        @state() savedBarChart: Chart | null = null;
-        @state() savedBarChartDatasetData: number[] | null = null;
-        @state() savedBarChartLabels: string[] | null = null;
+        @state() private savedBarChart: Chart | null = null;
+        @state() private savedBarChartDatasetData: number[] | null = null;
+        @state() private savedBarChartLabels: string[] | null = null;
 
-        @state() savedPieChart: Chart | null = null;
-        @state() savedPieChartDatasetData: number[] | null = null;
+        @state() private savedPieChart: Chart | null = null;
+        @state() private savedPieChartDatasetData: number[] | null = null;
 
-        @state() documentsByStatusGlobal: DocumentsByStatus | null = null;
+        @state() private documentsByStatusGlobal: DocumentsByStatus | null = null;
 
         // Document Statuses and Types table, sorting and pagination.
-        @state() private _documents: UmbracoDocument[] = [];
-        @state() private _currentPage = 1;
-        @state() private _itemsPerPage = 10;
-        @state() private _sortColumn: 'status' | 'name' | 'type' | null = null;
-        @state() private _sortDescending: boolean = false;
+        @state() private documents: UmbracoDocument[] = [];
+        @state() private currentPage = 1;
+        @state() private itemsPerPage = 10;
+        @state() private sortColumn: 'status' | 'name' | 'type' | null = null;
+        @state() private sortDescending: boolean = false;
 
-        private _updatePieChart(selectValue: string): void {
+        private updatePieChart(selectValue: string): void {
             if (!this.savedPieChart || !this.savedPieChartDatasetData || !this.documentsByStatusGlobal) return
 
             if (selectValue == "all") {
@@ -71,7 +71,7 @@ Chart.register(...registerables);
             this.savedPieChart.update();
         };
 
-        private _resetBarChart (): void {
+        private resetBarChart (): void {
             if (!this.savedBarChart || !this.savedBarChartLabels || !this.savedBarChartDatasetData) return
 
             this.savedBarChart.data.labels = [...this.savedBarChartLabels];
@@ -80,39 +80,39 @@ Chart.register(...registerables);
         };
 
         // Document Statuses and Types table and pagination.
-        private get _totalPages(): number {
-            return Math.ceil(this._documents.length / this._itemsPerPage);
+        private get totalPages(): number {
+            return Math.ceil(this.documents.length / this.itemsPerPage);
         }
 
-        private _onPageChange(event: CustomEvent) {
-            this._currentPage = (event.target as UUIPaginationElement).current;
+        private onPageChange(event: CustomEvent) {
+            this.currentPage = (event.target as UUIPaginationElement).current;
         }
 
-        private _getPaginatedItems(): UmbracoDocument[] {
-            const sorted = this._getSortedDocuments();
-            const start = (this._currentPage - 1) * this._itemsPerPage;
-            return sorted.slice(start, start + this._itemsPerPage);
+        private getPaginatedItems(): UmbracoDocument[] {
+            const sorted = this.getSortedDocuments();
+            const start = (this.currentPage - 1) * this.itemsPerPage;
+            return sorted.slice(start, start + this.itemsPerPage);
         }
 
-        private _onSort(column: 'status' | 'name' | 'type') {
-            if (this._sortColumn === column) {
-                this._sortDescending = !this._sortDescending;
+        private onSort(column: 'status' | 'name' | 'type') {
+            if (this.sortColumn === column) {
+                this.sortDescending = !this.sortDescending;
             } else {
-                this._sortColumn = column;
-                this._sortDescending = false;
+                this.sortColumn = column;
+                this.sortDescending = false;
             }
             this.requestUpdate();
         }
 
-        private _getSortedDocuments(): UmbracoDocument[] {
-            let docs = [...this._documents];
-            if (!this._sortColumn) return docs;
+        private getSortedDocuments(): UmbracoDocument[] {
+            let docs = [...this.documents];
+            if (!this.sortColumn) return docs;
 
             docs.sort((a, b) => {
                 let aValue: string = '';
                 let bValue: string = '';
 
-                switch (this._sortColumn) {
+                switch (this.sortColumn) {
                     case 'status':
                         aValue = convertDocumentStatusToNumberString(a.status);
                         bValue = convertDocumentStatusToNumberString(b.status);
@@ -128,20 +128,20 @@ Chart.register(...registerables);
                 }
 
                 const result = aValue.localeCompare(bValue, undefined, { numeric: true });
-                return this._sortDescending ? -result : result;
+                return this.sortDescending ? -result : result;
             });
 
             return docs;
         }
 
-        private _onSelectChange(event: Event) {
+        private onSelectChange(event: Event) {
             const select = event.target as HTMLSelectElement;
             const selectValue = select.value;
-            this._updatePieChart(selectValue);
+            this.updatePieChart(selectValue);
         }
 
         render() {
-            if (this._hasError) {
+            if (this.hasError) {
                 return html`
             <uui-box class="dashboard">
                 <div class="error-message">
@@ -173,7 +173,7 @@ Chart.register(...registerables);
                 <h2>Document count by Document Status</h2>
             </div>
             <div class="content-type-select-container">
-                <uui-select id="contentTypeSelect" .options="${this._contentTypeAliases}" @change="${this._onSelectChange}"></uui-select>
+                <uui-select id="contentTypeSelect" .options="${this.contentTypeAliases}" @change="${this.onSelectChange}"></uui-select>
             </div>
             <uui-box class="chart-box pie-chart">
                 <canvas id="contentByDocumentStatusChart"></canvas>
@@ -188,32 +188,32 @@ Chart.register(...registerables);
                 <table>
                     <thead>
                       <tr class="content-table-header">
-                        <th @click=${() => this._onSort('status')}>
+                        <th @click=${() => this.onSort('status')}>
                           <uui-button type="button" look="outline" color="default" label="Status"></uui-button>
                           <uui-symbol-sort 
-                            .active=${this._sortColumn === 'status'}
-                            .descending=${this._sortDescending && this._sortColumn === 'status'}>
+                            .active=${this.sortColumn === 'status'}
+                            .descending=${this.sortDescending && this.sortColumn === 'status'}>
                           </uui-symbol-sort>
                         </th>
-                        <th @click=${() => this._onSort('name')}>
+                        <th @click=${() => this.onSort('name')}>
                           <uui-button type="button" look="outline" color="default" label="Name"></uui-button>
                           <uui-symbol-sort 
-                            .active=${this._sortColumn === 'name'}
-                            .descending=${this._sortDescending && this._sortColumn === 'name'}>
+                            .active=${this.sortColumn === 'name'}
+                            .descending=${this.sortDescending && this.sortColumn === 'name'}>
                           </uui-symbol-sort>
                         </th>
-                        <th @click=${() => this._onSort('type')}>
+                        <th @click=${() => this.onSort('type')}>
                           <uui-button type="button" look="outline" color="default" label="Type"></uui-button>
                           <uui-symbol-sort 
-                            .active=${this._sortColumn === 'type'}
-                            .descending=${this._sortDescending && this._sortColumn === 'type'}>
+                            .active=${this.sortColumn === 'type'}
+                            .descending=${this.sortDescending && this.sortColumn === 'type'}>
                           </uui-symbol-sort>
                         </th>
                         <th>Link</th>
                       </tr>
                     </thead>
                     <tbody>
-                        ${this._getPaginatedItems().map(item => html`
+                        ${this.getPaginatedItems().map(item => html`
                             <tr>
                                 <td>
                                   <uui-tag color="${getTagColor(item.status)}">
@@ -241,9 +241,9 @@ Chart.register(...registerables);
                     previouslabel="&lt;"
                     nextlabel="&gt;"
                     lastlabel="&gt;&gt;"
-                    .current=${this._currentPage}
-                    .total=${this._totalPages}
-                    @change="${this._onPageChange}">
+                    .current=${this.currentPage}
+                    .total=${this.totalPages}
+                    @change="${this.onPageChange}">
                 </uui-pagination>
             </div>
         </div>
@@ -255,7 +255,7 @@ Chart.register(...registerables);
             const resetBtn = this.renderRoot.querySelector('#resetButton') as HTMLElement;
             if (resetBtn) {
                 resetBtn.addEventListener('click', () => {
-                    this._resetBarChart();
+                    this.resetBarChart();
                 });
             }
 
@@ -266,7 +266,7 @@ Chart.register(...registerables);
             let contentTypes = getContentTypesResponse.data;
 
             if (!contentTypes) {
-                this._hasError = true;
+                this.hasError = true;
                 return;
             }
 
@@ -274,7 +274,7 @@ Chart.register(...registerables);
                 (a, b) => b.count - a.count
             );
 
-            this._contentTypeAliases = [
+            this.contentTypeAliases = [
                 { name: 'All Document Types', value: 'all', selected: true },
                 ...contentTypes.map(type => ({ name: type.name, value: type.type })),
             ];
@@ -388,11 +388,11 @@ Chart.register(...registerables);
             const documentsByStatus = getDocumentsByStatusResponse.data;
 
             if (!documentsByStatus) {
-                this._hasError = true;
+                this.hasError = true;
                 return;
             }
 
-            this._documents = [
+            this.documents = [
                 ...documentsByStatus.public,
                 ...documentsByStatus.draft,
                 ...documentsByStatus.trashed,
