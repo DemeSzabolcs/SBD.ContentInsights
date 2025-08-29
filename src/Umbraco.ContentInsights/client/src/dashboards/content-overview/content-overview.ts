@@ -44,7 +44,10 @@ export class ContentOverview extends UmbLitElement {
     @state() private sortColumn: 'status' | 'name' | 'type' | null = null;
     @state() private sortDescending: boolean = false;
 
-    private updatePieChart(selectValue: string): void {
+    private updatePieChart(event: Event): void {
+        const select = event.target as HTMLSelectElement;
+        const selectValue = select.value;
+
         if (!this.savedPieChart || !this.savedPieChartDatasetData || !this.documentsByStatusGlobal) return
 
         if (selectValue == "all") {
@@ -133,12 +136,6 @@ export class ContentOverview extends UmbLitElement {
         return docs;
     }
 
-    private onSelectChange(event: Event) {
-        const select = event.target as HTMLSelectElement;
-        const selectValue = select.value;
-        this.updatePieChart(selectValue);
-    }
-
     render() {
         if (this.hasError) {
             return html`
@@ -172,7 +169,7 @@ export class ContentOverview extends UmbLitElement {
                 <h2>Document count by Document Status</h2>
             </div>
             <div class="content-type-select-container">
-                <uui-select id="contentTypeSelect" .options=${this.documentTypeSelectOptions} @change=${this.onSelectChange}></uui-select>
+                <uui-select id="contentTypeSelect" .options=${this.documentTypeSelectOptions} @change=${this.updatePieChart}></uui-select>
             </div>
             <uui-box class="chart-box pie-chart">
                 <canvas id="contentByDocumentStatusChart"></canvas>
