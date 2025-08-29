@@ -65,22 +65,30 @@ const resetBarChart = (): void => {
     savedBarChart.update();
 };
 
+const convertDocumentStatusToNumberString = (documentStatus: DocumentStatus): string => {
+    switch (documentStatus as unknown as string) {
+        case DocumentStatus[DocumentStatus.Public]:
+            return "0";
+        case DocumentStatus[DocumentStatus.Draft]:
+            return "1";
+        case DocumentStatus[DocumentStatus.Trashed]:
+            return "2";
+        default:
+            return "0";
+    }
+}
+
 @customElement('content-overview')
 export class ContentOverview extends UmbLitElement {
     @state() private _contentTypeAliases: Option[] = [];
     @state() private _hasError: boolean = false;
 
-    // Document Statuses and Types table and pagination.
+    // Document Statuses and Types table, sorting and pagination.
     @state() private _documents: UmbracoDocument[] = [];
     @state() private _currentPage = 1;
     @state() private _itemsPerPage = 10;
-
-
-    private _onSelectChange(event: Event) {
-        const select = event.target as HTMLSelectElement;
-        const selectValue = select.value;
-        updatePieChart(selectValue);
-    }
+    @state() private _sortColumn: 'status' | 'name' | 'type' | null = null;
+    @state() private _sortDescending: boolean = false;
 
     // Document Statuses and Types table and pagination.
     private _getTagColor(status: DocumentStatus): 'positive' | 'warning' | 'danger' {
@@ -105,8 +113,57 @@ export class ContentOverview extends UmbLitElement {
     }
 
     private _getPaginatedItems(): UmbracoDocument[] {
+        const sorted = this._getSortedDocuments();
         const start = (this._currentPage - 1) * this._itemsPerPage;
-        return this._documents.slice(start, start + this._itemsPerPage);
+        return sorted.slice(start, start + this._itemsPerPage);
+    }
+
+    private _onSort(column: 'status' | 'name' | 'type') {
+        if (this._sortColumn === column) {
+            // toggle direction
+            this._sortDescending = !this._sortDescending;
+        } else {
+            // switch to new column
+            this._sortColumn = column;
+            this._sortDescending = false; // default ascending
+        }
+        this.requestUpdate();
+    }
+
+    private _getSortedDocuments(): UmbracoDocument[] {
+        let docs = [...this._documents];
+        if (!this._sortColumn) return docs;
+
+        docs.sort((a, b) => {
+            let aValue: string = '';
+            let bValue: string = '';
+
+            switch (this._sortColumn) {
+                case 'status':
+                    aValue = convertDocumentStatusToNumberString(a.status);
+                    bValue = convertDocumentStatusToNumberString(b.status);
+                    break;
+                case 'name':
+                    aValue = a.name;
+                    bValue = b.name;
+                    break;
+                case 'type':
+                    aValue = a.typeName;
+                    bValue = b.typeName;
+                    break;
+            }
+
+            const result = aValue.localeCompare(bValue, undefined, { numeric: true });
+            return this._sortDescending ? -result : result;
+        });
+
+        return docs;
+    }
+
+        private _onSelectChange(event: Event) {
+        const select = event.target as HTMLSelectElement;
+        const selectValue = select.value;
+        updatePieChart(selectValue);
     }
 
     render() {
@@ -156,12 +213,30 @@ export class ContentOverview extends UmbLitElement {
             <div class="content-table">
                 <table>
                     <thead>
-                        <tr class="content-table-header">
-                            <th>Status</th>
-                            <th>Name</th>
-                            <th>Type</th>
-                            <th>Link</th>
-                        </tr>
+                      <tr class="content-table-header">
+                        <th @click=${() => this._onSort('status')}>
+                          <uui-button type="button" look="outline" color="default" label="Status"></uui-button>
+                          <uui-symbol-sort 
+                            .active=${this._sortColumn === 'status'}
+                            .descending=${this._sortDescending && this._sortColumn === 'status'}>
+                          </uui-symbol-sort>
+                        </th>
+                        <th @click=${() => this._onSort('name')}>
+                          <uui-button type="button" look="outline" color="default" label="Name"></uui-button>
+                          <uui-symbol-sort 
+                            .active=${this._sortColumn === 'name'}
+                            .descending=${this._sortDescending && this._sortColumn === 'name'}>
+                          </uui-symbol-sort>
+                        </th>
+                        <th @click=${() => this._onSort('type')}>
+                          <uui-button type="button" look="outline" color="default" label="Type"></uui-button>
+                          <uui-symbol-sort 
+                            .active=${this._sortColumn === 'type'}
+                            .descending=${this._sortDescending && this._sortColumn === 'type'}>
+                          </uui-symbol-sort>
+                        </th>
+                        <th>Link</th>
+                      </tr>
                     </thead>
                     <tbody>
                         ${this._getPaginatedItems().map(item => html`
@@ -495,15 +570,20 @@ export class ContentOverview extends UmbLitElement {
 
     .content-table-header {
         text-align: left;
+        
+    }
+
+    .content-table-header > th{
+        padding-bottom: 10px;
     }
 
     .content-table-header > th:nth-child(1),
     .content-table-header > th:nth-child(4) {
-      width: 10%;
+      width: 13%;
     }
 
     .content-table-header > th:nth-child(2) {
-      width: 45%;
+      width: 42%;
     }
 
     .content-table-header > th:nth-child(3) {
