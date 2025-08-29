@@ -12,15 +12,15 @@ import { umbracoPath } from '@umbraco-cms/backoffice/utils';
 import type { UUIPaginationElement } from '@umbraco-cms/backoffice/external/uui';
 
 // Types.
-import type { DocumentType, DocumentsByStatus, UmbracoDocument } from '../shared/types';
-import { DocumentStatus } from '../shared/types';
+import type { DocumentType, DocumentsByStatus, UmbracoDocument } from '../../shared/types';
+import { DocumentStatus } from '../../shared/types';
 
 // Shared utilities, constants.
-import { convertDocumentStatusToNumberString, getTagColor } from '../shared/utils';
-import { barChartColors } from '../shared/constants';
+import { convertDocumentStatusToNumberString, getTagColor } from '../../shared/utils';
+import { createBarChart } from './charts/bar-chart';
 
 // Styles.
-import { contentOverviewStyles } from '../styles/content-overview.styles';
+import { contentOverviewStyles } from '../../styles/content-overview.styles';
 
 Chart.register(...registerables);
 
@@ -264,103 +264,11 @@ Chart.register(...registerables);
             const documentCounts = documentTypes.map(documentType => documentType.count);
 
             const barChartCtx = this.renderRoot.querySelector('#contentByDocumentTypeChart') as HTMLCanvasElement;
-            const barChart = new Chart(barChartCtx, {
-                type: 'bar',
-                data: {
-                    labels: documentTypes.map(documentType => documentType.name),
-                    datasets: [
-                        {
-                            label: 'Number of Items',
-                            data: [...documentCounts],
-                            backgroundColor: documentCounts.map((_, i) => barChartColors[i % barChartColors.length]),
-                            borderColor: documentCounts.map((_, i) => barChartColors[i % barChartColors.length]),
-                            borderWidth: 1,
-                        },
-                    ],
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'top',
-                            labels: {
-                                color: 'white',
-                                boxWidth: 0,
-                            },
-                            onClick: () => { }
-                        },
-                        title: {
-                            display: false,
-                        },
-                    },
-                    onClick: (event) => {
-                        if (!event.native) return;
 
-                        const nativeEvent = event.native as MouseEvent;
-                        const rect = barChart.canvas.getBoundingClientRect();
-                        const x = nativeEvent.clientX - rect.left;
-                        let closestIndex = 0;
-                        let minDistance = Infinity;
-
-                        const xScale = barChart.scales['x'];
-                        if (!xScale) return;
-
-                        const datasetIndex = 0;
-                        const data = barChart.data.datasets[datasetIndex].data;
-
-                        data.forEach((_, i) => {
-                            const dataPosition = xScale.getPixelForValue(i);
-
-                            const distance = Math.abs(x - dataPosition);
-                            if (distance < minDistance) {
-                                minDistance = distance;
-                                closestIndex = i;
-                            }
-                        });
-
-                        if (!this.savedBarChartDatasetData) {
-                            this.savedBarChartDatasetData = [...data];
-                        }
-
-                        data.splice(closestIndex, 1);
-
-                        const chartDataLabels = barChart.data.labels
-
-                        if (chartDataLabels) {
-                            if (!this.savedBarChartLabels) {
-                                this.savedBarChartLabels = [...chartDataLabels];
-                            }
-
-                            chartDataLabels.splice(closestIndex, 1);
-                        }
-
-                        barChart.update();
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                color: 'white',
-                                precision: 0,
-                                stepSize: 1,
-                            },
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.1)',
-                            },
-                        },
-                        x: {
-                            ticks: {
-                                color: 'white',
-                            },
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.1)',
-                            },
-                        },
-                    },
-                },
-            })
+            const { barChart, datasetData, labels } = createBarChart(barChartCtx, documentTypes, documentCounts, this.savedBarChartDatasetData, this.savedBarChartLabels);
             this.savedBarChart = barChart;
+            this.savedBarChartDatasetData = datasetData;
+            this.savedBarChartLabels = labels;
 
             const getDocumentsByStatusResponse = await tryExecute(this, umbHttpClient.get<DocumentsByStatus>({
                 url: umbracoPath("/content-insights/get-documents-by-status"),
