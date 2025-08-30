@@ -3,6 +3,8 @@ import type { UmbracoDocument } from '../../shared/types';
 import { convertDocumentStatusToNumberString, getTagColor } from '../../shared/utils';
 import type { UUIPaginationElement } from '@umbraco-cms/backoffice/external/uui';
 
+let savedDocuments: UmbracoDocument[] | null = null;
+
 export type SortColumn = 'status' | 'name' | 'type' | null;
 
 export interface DocumentsTableState {
@@ -11,6 +13,21 @@ export interface DocumentsTableState {
     itemsPerPage: number;
     sortColumn: SortColumn;
     sortDescending: boolean;
+}
+export function filterDocumentTypes(selectValue: string, state: DocumentsTableState): void {
+    if (!savedDocuments) {
+        if (state.documents) {
+            savedDocuments = [...state.documents];
+        } else {
+            return;
+        }
+    }
+
+    if (selectValue === "all") {
+        state.documents = [...savedDocuments];
+    } else {
+        state.documents = [...savedDocuments.filter(document => document.type === selectValue)];
+    }
 }
 
 export function getTotalPages(state: DocumentsTableState): number {

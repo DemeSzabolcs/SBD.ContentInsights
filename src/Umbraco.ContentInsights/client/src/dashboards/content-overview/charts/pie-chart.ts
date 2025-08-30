@@ -3,10 +3,14 @@ import type { DocumentsByStatus } from '../../../shared/types';
 import { DocumentStatus } from '../../../shared/types';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 
+let savedPieChart: Chart | null = null;
+let savedPieChartDatasetData: number[] | null = null;
+let documentsByStatusGlobal: DocumentsByStatus | null = null;
+
 export function createPieChart(
     pieChartCtx: HTMLCanvasElement,
-    documentsByStatus: DocumentsByStatus,
-    savedPieChartDatasetData: number[] | null): { pieChart: Chart; pieChartDatasetData: number[] | null;} {
+    documentsByStatus: DocumentsByStatus
+): void {
     const pieChart = new Chart(pieChartCtx, {
         type: 'pie',
         data: {
@@ -42,9 +46,7 @@ export function createPieChart(
             plugins: {
                 legend: {
                     position: 'top',
-                    labels: {
-                        color: 'white',
-                    },
+                    labels: { color: 'white' },
                 },
                 datalabels: {
                     formatter: (value, context) => {
@@ -54,30 +56,45 @@ export function createPieChart(
                         return `${percentage}%`;
                     },
                     color: 'black',
-                    font: {
-                        size: 40,
-                        weight: 'bold',
-                    },
-
+                    font: { size: 40, weight: 'bold' },
                 },
                 title: {
                     display: true,
                     text: 'Content Status Distribution',
                     color: 'white',
-                    font: {
-                        size: 16,
-                    },
+                    font: { size: 16 },
                 },
             },
         },
-    })
-
+    });
 
     if (!savedPieChartDatasetData) {
         savedPieChartDatasetData = [...pieChart.data.datasets[0].data];
     }
 
-    const pieChartDatasetData = savedPieChartDatasetData;
+    savedPieChart = pieChart;
+    documentsByStatusGlobal = documentsByStatus;
+}
 
-    return { pieChart, pieChartDatasetData };
+export function updatePieChart(selectValue: string): void {
+    if (!savedPieChart || !savedPieChartDatasetData || !documentsByStatusGlobal) return;
+
+    if (selectValue === "all") {
+        savedPieChart.data.datasets[0].data = [...savedPieChartDatasetData];
+    } else {
+        const publicCountByType = documentsByStatusGlobal.public
+            .filter(document => document.type === selectValue).length;
+        const draftCountByType = documentsByStatusGlobal.draft
+            .filter(document => document.type === selectValue).length;
+        const trashedCountByType = documentsByStatusGlobal.trashed
+            .filter(document => document.type === selectValue).length;
+
+        savedPieChart.data.datasets[0].data = [
+            publicCountByType,
+            draftCountByType,
+            trashedCountByType,
+        ];
+    }
+
+    savedPieChart.update();
 }

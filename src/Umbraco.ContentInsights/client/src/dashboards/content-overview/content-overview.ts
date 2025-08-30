@@ -13,9 +13,9 @@ import { umbracoPath } from '@umbraco-cms/backoffice/utils';
 import type { DocumentType, DocumentsByStatus } from '../../shared/types';
 
 // Shared utilities, constants.
-import { createBarChart } from './charts/bar-chart';
-import { createPieChart } from './charts/pie-chart';
-import { renderDocumentsTable, onSort, onPageChange } from './render-documents-table';
+import { createBarChart, resetBarChart } from './charts/bar-chart';
+import { createPieChart, updatePieChart } from './charts/pie-chart';
+import { renderDocumentsTable, onSort, onPageChange, filterDocumentTypes } from './render-documents-table';
 import type { DocumentsTableState } from './render-documents-table';
 
 // Styles.
@@ -32,6 +32,10 @@ export class ContentOverview extends UmbLitElement {
         sortColumn: null,
         sortDescending: false,
     };
+
+    @state() private documentTypeSelectOptions: Option[] = [];
+    @state() private hasError: boolean = false;
+
     private handleSort(column: 'status' | 'name' | 'type') {
         this.documentsTableState = onSort(this.documentsTableState, column);
     }
@@ -40,56 +44,14 @@ export class ContentOverview extends UmbLitElement {
         this.documentsTableState = onPageChange(this.documentsTableState, event);
     }
 
-    @state() private documentTypeSelectOptions: Option[] = [];
-    @state() private hasError: boolean = false;
-
-    private savedBarChart: Chart | null = null;
-    private savedBarChartDatasetData: number[] | null = null;
-    private savedBarChartLabels: string[] | null = null;
-
-    private savedPieChart: Chart | null = null;
-    private savedPieChartDatasetData: number[] | null = null;
-
-    @state() private documentsByStatusGlobal: DocumentsByStatus | null = null;
-
-
-
-    private updatePieChart(event: Event): void {
+    private handleDocumentTypeSelectChange(event: Event) {
         const select = event.target as HTMLSelectElement;
         const selectValue = select.value;
-
-        if (!this.savedPieChart || !this.savedPieChartDatasetData || !this.documentsByStatusGlobal) return
-
-        if (selectValue == "all") {
-            this.savedPieChart.data.datasets[0].data = [...this.savedPieChartDatasetData];
-        }
-        else {
-            const publicCountByType = this.documentsByStatusGlobal.public
-                .filter(document => document.type == selectValue).length;
-
-            const draftCountByType = this.documentsByStatusGlobal.draft
-                .filter(document => document.type == selectValue).length;
-
-            const trashedCountByType = this.documentsByStatusGlobal.trashed
-                .filter(document => document.type == selectValue).length;
-
-            this.savedPieChart.data.datasets[0].data = [
-                publicCountByType,
-                draftCountByType,
-                trashedCountByType,
-            ];
-        }
-
-        this.savedPieChart.update();
-    };
-
-    private resetBarChart(): void {
-        if (!this.savedBarChart || !this.savedBarChartLabels || !this.savedBarChartDatasetData) return
-
-        this.savedBarChart.data.labels = [...this.savedBarChartLabels];
-        this.savedBarChart.data.datasets[0].data = [...this.savedBarChartDatasetData];
-        this.savedBarChart.update();
-    };
+        updatePieChart(selectValue);
+        filterDocumentTypes(selectValue, this.documentsTableState);
+        this.documentsTableState.currentPage = 1;
+        this.requestUpdate();
+    }
 
     render() {
         if (this.hasError) {
@@ -112,7 +74,7 @@ export class ContentOverview extends UmbLitElement {
             </div>
             <div class="reset-button">
                 <p>Click on the bars to remove them, click on reset to reset the chart.</p>
-                <uui-button type="button" look="primary" color="danger" label="Reset" @click=${this.resetBarChart}></uui-button>
+                <uui-button type="button" look="primary" color="danger" label="Reset" @click=${resetBarChart}></uui-button>
             </div>
             <uui-box class="chart-box">
                 <canvas id="contentByDocumentTypeChart"></canvas>
@@ -124,7 +86,7 @@ export class ContentOverview extends UmbLitElement {
                 <h2>Document count by Document Status</h2>
             </div>
             <div class="content-type-select-container">
-                <uui-select id="contentTypeSelect" .options=${this.documentTypeSelectOptions} @change=${this.updatePieChart}></uui-select>
+                <uui-select id="contentTypeSelect" .options=${this.documentTypeSelectOptions} @change=${this.handleDocumentTypeSelectChange}></uui-select>
             </div>
             <uui-box class="chart-box pie-chart">
                 <canvas id="contentByDocumentStatusChart"></canvas>
@@ -132,8 +94,8 @@ export class ContentOverview extends UmbLitElement {
         </div>
       ${renderDocumentsTable(
           this.documentsTableState,
-          (col) => this.handleSort(col),
-          (e) => this.handlePageChange(e)
+          (column) => this.handleSort(column),
+          (event) => this.handlePageChange(event)
       )}
     </uui-box>
     `
@@ -159,11 +121,7 @@ export class ContentOverview extends UmbLitElement {
         const documentCounts = documentTypes.map(documentType => documentType.count);
 
         const barChartCtx = this.renderRoot.querySelector('#contentByDocumentTypeChart') as HTMLCanvasElement;
-
-        const { barChart, barChartDatasetData, labels } = createBarChart(barChartCtx, documentTypes, documentCounts, this.savedBarChartDatasetData, this.savedBarChartLabels);
-        this.savedBarChart = barChart;
-        this.savedBarChartDatasetData = barChartDatasetData;
-        this.savedBarChartLabels = labels;
+        createBarChart(barChartCtx, documentTypes, documentCounts);
 
         const getDocumentsByStatusResponse = await tryExecute(this, umbHttpClient.get<DocumentsByStatus>({
             url: umbracoPath("/content-insights/get-documents-by-status"),
@@ -176,18 +134,17 @@ export class ContentOverview extends UmbLitElement {
             return;
         }
 
-        this.documentsTableState.documents = [
-            ...documentsByStatus.public,
-            ...documentsByStatus.draft,
-            ...documentsByStatus.trashed,
-        ];
-
-        this.documentsByStatusGlobal = documentsByStatus;
+        this.documentsTableState = {
+            ...this.documentsTableState,
+            documents: [
+                ...documentsByStatus.public,
+                ...documentsByStatus.draft,
+                ...documentsByStatus.trashed,
+            ],
+        };
 
         const pieChartCtx = this.renderRoot.querySelector('#contentByDocumentStatusChart') as HTMLCanvasElement;
-        const { pieChart, pieChartDatasetData } = createPieChart(pieChartCtx, documentsByStatus, this.savedPieChartDatasetData)
-        this.savedPieChart = pieChart;
-        this.savedPieChartDatasetData = pieChartDatasetData;
+        createPieChart(pieChartCtx, documentsByStatus);
     }
 
     static styles = contentOverviewStyles;

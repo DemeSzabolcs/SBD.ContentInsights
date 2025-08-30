@@ -2,22 +2,29 @@ import { Chart } from 'chart.js';
 import { barChartColors } from '../../../shared/constants';
 import type { DocumentType } from '../../../shared/types';
 
+let savedBarChart: Chart | null = null;
+let savedBarChartDatasetData: number[] | null = null;
+let savedBarChartLabels: string[] | null = null;
+
 export function createBarChart(
     barChartCtx: HTMLCanvasElement,
     documentTypes: DocumentType[],
     documentCounts: number[],
-    savedBarChartDatasetData: number[] | null,
-    savedBarChartLabels: string[] | null): { barChart: Chart; barChartDatasetData: number[] | null; labels: string[] | null} {
+): { barChart: Chart } {
     const barChart = new Chart(barChartCtx, {
         type: 'bar',
         data: {
-            labels: documentTypes.map(documentType => documentType.name),
+            labels: documentTypes.map((documentType) => documentType.name),
             datasets: [
                 {
                     label: 'Number of Items',
                     data: [...documentCounts],
-                    backgroundColor: documentCounts.map((_, i) => barChartColors[i % barChartColors.length]),
-                    borderColor: documentCounts.map((_, i) => barChartColors[i % barChartColors.length]),
+                    backgroundColor: documentCounts.map(
+                        (_, i) => barChartColors[i % barChartColors.length],
+                    ),
+                    borderColor: documentCounts.map(
+                        (_, i) => barChartColors[i % barChartColors.length],
+                    ),
                     borderWidth: 1,
                 },
             ],
@@ -32,7 +39,7 @@ export function createBarChart(
                         color: 'white',
                         boxWidth: 0,
                     },
-                    onClick: () => { }
+                    onClick: () => { },
                 },
                 title: {
                     display: false,
@@ -64,7 +71,7 @@ export function createBarChart(
 
                 data.splice(closestIndex, 1);
 
-                const chartDataLabels = barChart.data.labels
+                const chartDataLabels = barChart.data.labels;
 
                 if (chartDataLabels) {
                     if (!savedBarChartLabels) {
@@ -108,8 +115,15 @@ export function createBarChart(
         savedBarChartLabels = [...barChart.data.labels];
     }
 
-    const barChartDatasetData = savedBarChartDatasetData;
-    const labels = savedBarChartLabels;
+    savedBarChart = barChart;
 
-    return { barChart, barChartDatasetData, labels };
+    return { barChart };
+}
+
+export function resetBarChart(): void {
+    if (!savedBarChart || !savedBarChartLabels || !savedBarChartDatasetData) return;
+
+    savedBarChart.data.labels = [...savedBarChartLabels];
+    savedBarChart.data.datasets[0].data = [...savedBarChartDatasetData];
+    savedBarChart.update();
 }
