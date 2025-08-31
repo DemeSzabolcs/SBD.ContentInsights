@@ -53,9 +53,19 @@ export const contentOverviewStyles = css`
     padding-bottom: 20px;
   }
 
-  .content-type-select-container {
-    text-align: right;
+  .select-container {
     padding-bottom: 20px;
+    display: flex;
+    align-items: center;
+  }
+
+  .items-per-page {
+      margin-left: auto;
+      padding-right: 10px;
+  }
+
+  .document-type-select{
+      margin-left: auto;
   }
 
   .error-message {
@@ -72,6 +82,7 @@ export const contentOverviewStyles = css`
 
   .content-table > table {
     width: 100%;
+    padding-bottom: 40px;
   }
 
   .content-table-header {

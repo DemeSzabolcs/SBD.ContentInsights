@@ -53,6 +53,16 @@ export class ContentOverview extends UmbLitElement {
         this.requestUpdate();
     }
 
+    private handleItemsPerPageChange(event: Event) {
+        const select = event.target as HTMLSelectElement;
+        const selectValue = Number(select.value);
+
+        this.documentsTableState = {
+            ...this.documentsTableState,
+            itemsPerPage: selectValue,
+        };
+    }
+
     render() {
         if (this.hasError) {
             return html`
@@ -85,8 +95,8 @@ export class ContentOverview extends UmbLitElement {
                 <uui-icon name="icon-pie-chart" style="font-size: 30px;"></uui-icon>
                 <h2>Document count by Document Status</h2>
             </div>
-            <div class="content-type-select-container">
-                <uui-select id="contentTypeSelect" .options=${this.documentTypeSelectOptions} @change=${this.handleDocumentTypeSelectChange}></uui-select>
+            <div class="select-container">
+                <uui-select class="document-type-select" id="documentTypeSelect" label="documentTypeSelect" .options=${this.documentTypeSelectOptions} @change=${this.handleDocumentTypeSelectChange}></uui-select>
             </div>
             <uui-box class="chart-box pie-chart">
                 <canvas id="contentByDocumentStatusChart"></canvas>
@@ -95,7 +105,8 @@ export class ContentOverview extends UmbLitElement {
       ${renderDocumentsTable(
           this.documentsTableState,
           (column) => this.handleSort(column),
-          (event) => this.handlePageChange(event)
+          (event) => this.handlePageChange(event),
+          (event) => this.handleItemsPerPageChange(event)
       )}
     </uui-box>
     `

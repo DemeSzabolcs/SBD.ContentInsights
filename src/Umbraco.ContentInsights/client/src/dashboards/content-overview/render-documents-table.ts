@@ -93,13 +93,24 @@ export function getPaginatedItems(state: DocumentsTableState): UmbracoDocument[]
 export function renderDocumentsTable(
     state: DocumentsTableState,
     onSortClick: (column: 'status' | 'name' | 'type') => void,
-    onPageChangeHandler: (event: CustomEvent) => void
+    onPageChangeHandler: (event: CustomEvent) => void,
+    onItemsPerPageChange: (event: Event) => void
 ) {
+    const itemsPerPageOptions = [
+        { name: "10", value: "10", selected: state.itemsPerPage === 10 },
+        { name: "25", value: "25", selected: state.itemsPerPage === 25 },
+        { name: "50", value: "50", selected: state.itemsPerPage === 50 },
+        { name: "100", value: "100", selected: state.itemsPerPage === 100 }
+    ];
     return html`
     <div class="dashboard-section">
       <div class="section-header">
         <uui-icon name="icon-bulleted-list" style="font-size: 30px;"></uui-icon>
         <h2>Documents</h2>
+      </div>
+      <div class="select-container">
+        <p class="items-per-page">Items per page:</p>
+        <uui-select id="itemPerPageSelect" label="itemPerPageSelect" .options=${itemsPerPageOptions} @change=${onItemsPerPageChange}></uui-select>
       </div>
       <div class="content-table">
         <table>
