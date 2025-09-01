@@ -3,7 +3,6 @@ import { css } from 'lit';
 export const contentOverviewStyles = css`
   :host {
     display: block;
-    max-width: 1000px;
     margin: 0 auto;
   }
 
@@ -11,11 +10,24 @@ export const contentOverviewStyles = css`
     padding: 24px;
     border-radius: 6px;
     margin-top: 40px;
+    max-width: 85vw;
+    margin: auto;
+  }
+
+.dashboard-flex {
+    display: flex;
+    justify-content: space-between;
   }
 
   .dashboard-section {
     margin-bottom: 32px;
   }
+
+   .dashboard-section-flex {
+        max-width: 50%;
+        margin-left: 2%;
+        margin-right: 2%;
+    }
 
   .section-header {
     display: flex;
@@ -44,7 +56,7 @@ export const contentOverviewStyles = css`
 
   .pie-chart {
     margin: auto;
-    width: 70%;
+    width: 90%;
   }
 
   .reset-button {

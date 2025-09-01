@@ -77,37 +77,39 @@ export class ContentOverview extends UmbLitElement {
 
         return html`
     <uui-box class="dashboard">
-        <div class="dashboard-section">
-            <div class="section-header">
-                <uui-icon name="icon-bar-chart" style="font-size: 30px;"></uui-icon>
-                <h2>Document count by Document Types</h2>
+        <div class="dashboard-flex">
+            <div class="dashboard-section-flex">
+                <div class="section-header">
+                    <uui-icon name="icon-bar-chart" style="font-size: 30px;"></uui-icon>
+                    <h2>Document count by Document Types</h2>
+                </div>
+                <div class="reset-button">
+                    <p>Click on the bars to remove them, click on reset to reset the chart.</p>
+                    <uui-button type="button" look="primary" color="danger" label="Reset" @click=${resetBarChart}></uui-button>
+                </div>
+                <uui-box class="chart-box bar-chart">
+                    <canvas id="contentByDocumentTypeChart"></canvas>
+                </uui-box>
             </div>
-            <div class="reset-button">
-                <p>Click on the bars to remove them, click on reset to reset the chart.</p>
-                <uui-button type="button" look="primary" color="danger" label="Reset" @click=${resetBarChart}></uui-button>
+            <div class="dashboard-section-flex">
+                <div class="section-header">
+                    <uui-icon name="icon-pie-chart" style="font-size: 30px;"></uui-icon>
+                    <h2>Document count by Document Status</h2>
+                </div>
+                <div class="select-container">
+                    <uui-select class="document-type-select" id="documentTypeSelect" label="documentTypeSelect" .options=${this.documentTypeSelectOptions} @change=${this.handleDocumentTypeSelectChange}></uui-select>
+                </div>
+                <uui-box class="chart-box pie-chart">
+                    <canvas id="contentByDocumentStatusChart"></canvas>
+                </uui-box>
             </div>
-            <uui-box class="chart-box">
-                <canvas id="contentByDocumentTypeChart"></canvas>
-            </uui-box>
-        </div>
-        <div class="dashboard-section">
-            <div class="section-header">
-                <uui-icon name="icon-pie-chart" style="font-size: 30px;"></uui-icon>
-                <h2>Document count by Document Status</h2>
-            </div>
-            <div class="select-container">
-                <uui-select class="document-type-select" id="documentTypeSelect" label="documentTypeSelect" .options=${this.documentTypeSelectOptions} @change=${this.handleDocumentTypeSelectChange}></uui-select>
-            </div>
-            <uui-box class="chart-box pie-chart">
-                <canvas id="contentByDocumentStatusChart"></canvas>
-            </uui-box>
         </div>
       ${renderDocumentsTable(
-          this.documentsTableState,
-          (column) => this.handleSort(column),
-          (event) => this.handlePageChange(event),
-          (event) => this.handleItemsPerPageChange(event)
-      )}
+            this.documentsTableState,
+            (column) => this.handleSort(column),
+            (event) => this.handlePageChange(event),
+            (event) => this.handleItemsPerPageChange(event)
+        )}
     </uui-box>
     `
     }
