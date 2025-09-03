@@ -14,20 +14,30 @@ export const contentOverviewStyles = css`
     margin: auto;
   }
 
-.dashboard-flex {
-    display: flex;
-    justify-content: space-between;
+  .dashboard-flex {
+    display: block;
+  }
+
+  .dashboard-section-flex {
+    max-width: 100%;
+    margin-bottom: 32px;
+  }
+
+  @media (min-width: 768px) {
+    .dashboard-flex {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .dashboard-section-flex {
+      max-width: 50%;
+      margin: 0 2%;
+    }
   }
 
   .dashboard-section {
     margin-bottom: 32px;
   }
-
-   .dashboard-section-flex {
-        max-width: 50%;
-        margin-left: 2%;
-        margin-right: 2%;
-    }
 
   .section-header {
     display: flex;
@@ -72,12 +82,12 @@ export const contentOverviewStyles = css`
   }
 
   .items-per-page {
-      margin-left: auto;
-      padding-right: 10px;
+    margin-left: auto;
+    padding-right: 10px;
   }
 
-  .document-type-select{
-      margin-left: auto;
+  .document-type-select {
+    margin-left: auto;
   }
 
   .error-message {
@@ -97,6 +107,10 @@ export const contentOverviewStyles = css`
     padding-bottom: 40px;
   }
 
+  .content-table > table > thead {
+    vertical-align: baseline;
+  }
+
   .content-table-header {
     text-align: left;
   }
@@ -111,10 +125,10 @@ export const contentOverviewStyles = css`
   }
 
   .content-table-header > th:nth-child(2) {
-    width: 42%;
+    width: 40%;
   }
 
   .content-table-header > th:nth-child(3) {
-    width: 35%;
+    width: 34%;
   }
 `;
