@@ -29,10 +29,12 @@ public class ContentInsightsController : ManagementApiControllerBase
         var types = _contentTypeService.GetAll()
             .Select(contentType => new DocumentType
             {
-                Alias = contentType.Alias,
+                Type = contentType.Alias,
                 Name = contentType.Name ?? string.Empty,
                 Count = _contentService.Count(contentType.Alias),
             });
+
+        types = types.OrderByDescending(type => type.Count);
 
         return Ok(types);
     }
@@ -71,6 +73,7 @@ public class ContentInsightsController : ManagementApiControllerBase
                 Name = content.Name ?? string.Empty,
                 Link = $"/umbraco/section/content/workspace/document/edit/{content.Key}",
                 Type = content.ContentType.Alias,
+                TypeName = content.ContentType.Name ?? string.Empty,
             })
             .ToList();
 
@@ -83,6 +86,7 @@ public class ContentInsightsController : ManagementApiControllerBase
                 Name = content.Name ?? string.Empty,
                 Link = $"/umbraco/section/content/workspace/document/edit/{content.Key}",
                 Type = content.ContentType.Alias,
+                TypeName = content.ContentType.Name ?? string.Empty,
             })
             .ToList();
 
@@ -95,6 +99,7 @@ public class ContentInsightsController : ManagementApiControllerBase
                 Name = content.Name ?? string.Empty,
                 Link = $"/umbraco/section/content/workspace/document/edit/{content.Key}",
                 Type = content.ContentType.Alias,
+                TypeName = content.ContentType.Name ?? string.Empty,
             })
             .ToList();
 
