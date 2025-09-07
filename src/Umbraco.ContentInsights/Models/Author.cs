@@ -9,6 +9,4 @@ public class Author
     public string Link { get; set; } = string.Empty;
 
     public IEnumerable<UserGroup> UserGroups { get; set; } = [];
-
-    public IEnumerable<Document> Documents { get; set; } = [];
 }

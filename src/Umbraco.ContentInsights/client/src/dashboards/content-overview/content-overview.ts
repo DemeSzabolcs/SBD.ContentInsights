@@ -11,12 +11,15 @@ import { umbracoPath } from '@umbraco-cms/backoffice/utils';
 
 // Types.
 import type { DocumentType, DocumentsByStatus } from '../../shared/types';
+import { DocumentsWithAuthors } from '../../shared/types';
 
 // Shared utilities, constants.
 import { createBarChart, resetBarChart } from './charts/bar-chart';
 import { createPieChart, updatePieChart } from './charts/pie-chart';
 import { renderDocumentsTable, onSort, onPageChange, filterDocumentTypes } from './render-documents-table';
 import type { DocumentsTableState } from './render-documents-table';
+import { convertDocumentStatusToNumberString } from '../../shared/utils';
+
 
 // Styles.
 import { contentOverviewStyles } from '../../styles/content-overview.styles';
@@ -26,7 +29,7 @@ Chart.register(...registerables);
 @customElement('content-overview')
 export class ContentOverview extends UmbLitElement {
     @state() private documentsTableState: DocumentsTableState = {
-        documents: [],
+        documentsWithAuthors: new DocumentsWithAuthors(),
         currentPage: 1,
         itemsPerPage: 10,
         sortColumn: null,
@@ -36,7 +39,7 @@ export class ContentOverview extends UmbLitElement {
     @state() private documentTypeSelectOptions: Option[] = [];
     @state() private hasError: boolean = false;
 
-    private handleSort(column: 'status' | 'name' | 'type') {
+    private handleSort(column: 'status' | 'name' | 'type' | 'author') {
         this.documentsTableState = onSort(this.documentsTableState, column);
     }
 
@@ -137,24 +140,32 @@ export class ContentOverview extends UmbLitElement {
         const barChartCtx = this.renderRoot.querySelector('#contentByDocumentTypeChart') as HTMLCanvasElement;
         createBarChart(barChartCtx, documentTypes);
 
-        const getDocumentsByStatusResponse = await tryExecute(this, umbHttpClient.get<DocumentsByStatus>({
-            url: umbracoPath("/content-insights/get-documents-by-status"),
+        const getDocumentsWithAuthorsResponse = await tryExecute(this, umbHttpClient.get<DocumentsWithAuthors>({
+            url: umbracoPath("/content-insights/get-all-documents-with-authors"),
         }));
 
-        const documentsByStatus = getDocumentsByStatusResponse.data;
+        const documentsWithAuthorsData = getDocumentsWithAuthorsResponse.data;
 
-        if (!documentsByStatus) {
+        if (!documentsWithAuthorsData?.documents || !documentsWithAuthorsData?.authors) {
             this.hasError = true;
             return;
         }
 
         this.documentsTableState = {
             ...this.documentsTableState,
-            documents: [
-                ...documentsByStatus.public,
-                ...documentsByStatus.draft,
-                ...documentsByStatus.trashed,
-            ],
+            documentsWithAuthors: documentsWithAuthorsData
+        };
+
+        const documentsByStatus: DocumentsByStatus = {
+            public: documentsWithAuthorsData.documents.filter(
+                (document) => convertDocumentStatusToNumberString(document.status) === "0"
+            ),
+            draft: documentsWithAuthorsData.documents.filter(
+                (document) => convertDocumentStatusToNumberString(document.status) === "1"
+            ),
+            trashed: documentsWithAuthorsData.documents.filter(
+                (document) => convertDocumentStatusToNumberString(document.status) === "2"
+            ),
         };
 
         const pieChartCtx = this.renderRoot.querySelector('#contentByDocumentStatusChart') as HTMLCanvasElement;

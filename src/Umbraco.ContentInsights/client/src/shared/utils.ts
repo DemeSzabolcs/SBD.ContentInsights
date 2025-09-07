@@ -1,4 +1,4 @@
-import { DocumentStatus } from "./types";
+import { DocumentStatus, Author } from "./types";
 
 export const convertDocumentStatusToNumberString = (documentStatus: DocumentStatus): string => {
     switch (documentStatus as unknown as string) {
@@ -24,4 +24,16 @@ export const getTagColor = (status: DocumentStatus): 'positive' | 'warning' | 'd
         default:
             return 'warning';
     }
+}
+
+
+export function getAuthorNameByKey(
+    authorKey: string,
+    authors: Author[]
+): string  {
+    const author = authors.find(a => a.link === authorKey);
+    return author ? author.name : '';
+}
+export function getAuthorLinkFromKey(authorKey: string): string {
+    return `/umbraco/section/user-management/workspace/user/edit/${authorKey}`;
 }

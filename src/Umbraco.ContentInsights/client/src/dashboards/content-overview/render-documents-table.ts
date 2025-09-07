@@ -1,14 +1,14 @@
 import { html } from 'lit';
-import type { UmbracoDocument } from '../../shared/types';
-import { convertDocumentStatusToNumberString, getTagColor } from '../../shared/utils';
+import type { UmbracoDocument, DocumentsWithAuthors } from '../../shared/types';
+import { convertDocumentStatusToNumberString, getTagColor, getAuthorNameByKey, getAuthorLinkFromKey } from '../../shared/utils';
 import type { UUIPaginationElement } from '@umbraco-cms/backoffice/external/uui';
 
 let savedDocuments: UmbracoDocument[] | null = null;
 
-export type SortColumn = 'status' | 'name' | 'type' | null;
+export type SortColumn = 'status' | 'name' | 'type' | 'author' | null;
 
 export interface DocumentsTableState {
-    documents: UmbracoDocument[];
+    documentsWithAuthors: DocumentsWithAuthors;
     currentPage: number;
     itemsPerPage: number;
     sortColumn: SortColumn;
@@ -16,22 +16,22 @@ export interface DocumentsTableState {
 }
 export function filterDocumentTypes(selectValue: string, state: DocumentsTableState): void {
     if (!savedDocuments) {
-        if (state.documents) {
-            savedDocuments = [...state.documents];
+        if (state.documentsWithAuthors.documents) {
+            savedDocuments = [...state.documentsWithAuthors.documents];
         } else {
             return;
         }
     }
 
     if (selectValue === "all") {
-        state.documents = [...savedDocuments];
+        state.documentsWithAuthors.documents = [...savedDocuments];
     } else {
-        state.documents = [...savedDocuments.filter(document => document.type === selectValue)];
+        state.documentsWithAuthors.documents = [...savedDocuments.filter(document => document.type === selectValue)];
     }
 }
 
 export function getTotalPages(state: DocumentsTableState): number {
-    return Math.ceil(state.documents.length / state.itemsPerPage);
+    return Math.ceil(state.documentsWithAuthors.documents.length / state.itemsPerPage);
 }
 
 export function onPageChange(
@@ -46,7 +46,7 @@ export function onPageChange(
 
 export function onSort(
     state: DocumentsTableState,
-    column: 'status' | 'name' | 'type'
+    column: 'status' | 'name' | 'type' | 'author'
 ): DocumentsTableState {
     if (state.sortColumn === column) {
         return { ...state, sortDescending: !state.sortDescending };
@@ -55,7 +55,7 @@ export function onSort(
 }
 
 export function getSortedDocuments(state: DocumentsTableState): UmbracoDocument[] {
-    let docs = [...state.documents];
+    let docs = [...state.documentsWithAuthors.documents];
     if (!state.sortColumn) return docs;
 
     docs.sort((a, b) => {
@@ -75,6 +75,10 @@ export function getSortedDocuments(state: DocumentsTableState): UmbracoDocument[
                 aValue = a.typeName;
                 bValue = b.typeName;
                 break;
+            case 'author':
+                aValue = getAuthorNameByKey(a.authorKey, state.documentsWithAuthors.authors);
+                bValue = getAuthorNameByKey(b.authorKey, state.documentsWithAuthors.authors);
+                break;
         }
 
         const result = aValue.localeCompare(bValue, undefined, { numeric: true });
@@ -92,7 +96,7 @@ export function getPaginatedItems(state: DocumentsTableState): UmbracoDocument[]
 
 export function renderDocumentsTable(
     state: DocumentsTableState,
-    onSortClick: (column: 'status' | 'name' | 'type') => void,
+    onSortClick: (column: 'status' | 'name' | 'type' | 'author') => void,
     onPageChangeHandler: (event: CustomEvent) => void,
     onItemsPerPageChange: (event: Event) => void
 ) {
@@ -137,7 +141,13 @@ export function renderDocumentsTable(
                   .descending=${state.sortDescending && state.sortColumn === 'type'}>
                 </uui-symbol-sort>
               </th>
-              <th>Link</th>
+              <th @click=${() => onSortClick('author')}>
+                <uui-button type="button" look="outline" color="default" label="Author"></uui-button>
+                <uui-symbol-sort
+                  .active=${state.sortColumn === 'author'}
+                  .descending=${state.sortDescending && state.sortColumn === 'author'}>
+                </uui-symbol-sort>
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -145,12 +155,14 @@ export function renderDocumentsTable(
         (item) => html`
                 <tr>
                   <td>
-                    <uui-tag color="${getTagColor(item.status)}">${item.status}</uui-tag>
+                  <uui-tag color="${getTagColor(item.status)}">${item.status}</uui-tag>
                   </td>
-                  <td>${item.name}</td>
+                  <td>
+                    <uui-button look="default" type="button" href="${item.link}" target="_blank" label="${item.name}">${item.name}<uui-icon name="icon-link"></uui-icon></uui-button>
+                  </td>
                   <td>${item.typeName}</td>
                   <td>
-                    <uui-button look="primary" type="button" href="${item.link}" target="_blank" label="Link"></uui-button>
+                    <uui-button look="default" type="button" href="${getAuthorLinkFromKey(item.authorKey)}" target="_blank" label="${getAuthorNameByKey(item.authorKey, state.documentsWithAuthors.authors)}">${getAuthorNameByKey(item.authorKey, state.documentsWithAuthors.authors)} <uui-icon name="icon-link"></uui-icon> </uui-button>
                   </td>
                 </tr>
               `

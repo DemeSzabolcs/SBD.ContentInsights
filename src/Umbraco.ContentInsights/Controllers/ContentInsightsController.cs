@@ -46,49 +46,18 @@ public class ContentInsightsController : ManagementApiControllerBase
         return Ok(types);
     }
 
-    [HttpGet("get-documents-by-status")]
-    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
-    public IActionResult GetDocuments()
-    {
-        var allDocuments = GetAllDocuments();
-
-        var publicDocs = allDocuments
-            .Where(content => content.Published && !content.Trashed)
-            .DistinctBy(content => content.Id)
-            .Select(content => new Document(content))
-            .ToList();
-
-        var draftDocs = allDocuments
-            .Where(content => !content.Published && !content.Trashed)
-            .DistinctBy(content => content.Id)
-            .Select(content => new Document(content))
-            .ToList();
-
-        var trashedDocs = allDocuments
-            .Where(content => content.Trashed)
-            .DistinctBy(content => content.Id)
-            .Select(content => new Document(content))
-            .ToList();
-
-        return Ok(new DocumentsByStatus
-        {
-            Public = publicDocs,
-            Draft = draftDocs,
-            Trashed = trashedDocs,
-        });
-    }
-
-    [HttpGet("get-users-with-documents")]
-    [ProducesResponseType(typeof(IEnumerable<Author>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetUsersWithPermissions()
+    [HttpGet("get-all-documents-with-authors")]
+    [ProducesResponseType(typeof(IEnumerable<DocumentsWithAuthors>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAllDocumentsWithAuthors()
     {
         var neededPermissions = new[] { "Umb.Document.Create", "Umb.Document.Update", "Umb.Document.Publish" };
 
         var matchingUsers = new List<Author>();
+        var allDocuments = new List<Document>();
         var userGroupsWithPermissions = (await _userGroupService.GetAllAsync(0, int.MaxValue)).Items
             .Where(group => group.Permissions.Intersect(neededPermissions).Any()).ToList();
 
-        var allDocuments = GetAllDocuments();
+        var allContent = GetAllDocuments();
 
         foreach (var group in userGroupsWithPermissions)
         {
@@ -102,16 +71,23 @@ public class ContentInsightsController : ManagementApiControllerBase
                     Email = user.Email,
                     Link = user.Key.ToString(),
                     UserGroups = user.Groups.Select(group => new UserGroup(group.Alias, group.Key.ToString())),
-                    Documents = allDocuments
-                        .Where(document =>
-                            (document.PublisherId.HasValue && document.PublisherId == user.Id) ||
-                            (!document.PublisherId.HasValue && document.WriterId == user.Id))
-                        .Select(document => new Document(document)),
                 });
+
+                allDocuments.AddRange(allContent
+                    .Where(document =>
+                        (document.PublisherId.HasValue && document.PublisherId == user.Id) ||
+                        (!document.PublisherId.HasValue && document.WriterId == user.Id))
+                    .Select(document => new Document(document, user.Key.ToString())));
             }
         }
 
-        return Ok(matchingUsers);
+        var allDocumentsAndAuthors = new DocumentsWithAuthors
+        {
+            Documents = allDocuments,
+            Authors = matchingUsers,
+        };
+
+        return Ok(allDocumentsAndAuthors);
     }
 
     private List<IContent> GetAllDocuments()

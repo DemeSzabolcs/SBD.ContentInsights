@@ -7,10 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="Models\DocumentsByStatus.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Umbraco.Cms.Api.Management" Version="16.1.1" />
     <PackageReference Include="Umbraco.Cms.Core" Version="16.1.1" />
     <PackageReference Include="Umbraco.Cms.Infrastructure" Version="16.1.1" />

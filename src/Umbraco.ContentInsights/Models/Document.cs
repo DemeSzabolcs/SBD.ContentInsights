@@ -13,7 +13,9 @@ public class Document
     public string Type { get; set; }
     public string TypeName { get; set; } = string.Empty;
 
-    public Document(IContent content)
+    public string AuthorKey { get; set; }
+
+    public Document(IContent content, string authorKey)
     {
         ArgumentNullException.ThrowIfNull(content);
 
@@ -29,5 +31,6 @@ public class Document
         Link = $"/umbraco/section/content/workspace/document/edit/{content.Key}";
         Type = content.ContentType.Alias;
         TypeName = content.ContentType.Name ?? string.Empty;
+        AuthorKey = authorKey;
     }
 }
