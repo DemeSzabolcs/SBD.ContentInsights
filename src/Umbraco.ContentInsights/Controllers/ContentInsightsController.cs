@@ -4,7 +4,6 @@ using Umbraco.Cms.Api.Management.Controllers;
 using Umbraco.Cms.Api.Management.Routing;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Services;
-using Umbraco.ContentInsights.Constants;
 using Umbraco.ContentInsights.Models;
 
 namespace Umbraco.ContentInsights.Controllers;
@@ -15,14 +14,22 @@ public class ContentInsightsController : ManagementApiControllerBase
 {
     private readonly IContentTypeService _contentTypeService;
     private readonly IContentService _contentService;
+    private readonly IUserGroupService _userGroupService;
+    private readonly IUserService _userService;
 
-    public ContentInsightsController(IContentTypeService contentTypeService, IContentService contentService)
+    public ContentInsightsController(
+        IContentTypeService contentTypeService,
+        IContentService contentService,
+        IUserGroupService userGroupService,
+        IUserService userService)
     {
         _contentTypeService = contentTypeService;
         _contentService = contentService;
+        _userGroupService = userGroupService;
+        _userService = userService;
     }
 
-    [HttpGet("get-content-types")]
+    [HttpGet("get-document-types")]
     [ProducesResponseType(typeof(IEnumerable<DocumentType>), StatusCodes.Status200OK)]
     public IActionResult GetContentTypes()
     {
@@ -43,64 +50,24 @@ public class ContentInsightsController : ManagementApiControllerBase
     [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
     public IActionResult GetDocuments()
     {
-        var allContent = new List<IContent>();
+        var allDocuments = GetAllDocuments();
 
-        // Get all root documents.
-        var rootContents = _contentService.GetRootContent();
-        allContent.AddRange(rootContents);
-
-        // Get root documents' children.
-        foreach (var rootContent in rootContents)
-        {
-            var descendants = _contentService.GetPagedDescendants(rootContent.Id, 0, int.MaxValue, out _);
-
-            if (descendants != null)
-            {
-                allContent.AddRange(descendants);
-            }
-        }
-
-        // Get documents from recycle bin.
-        var trashedContent = _contentService.GetPagedContentInRecycleBin(0, int.MaxValue, out _);
-        allContent.AddRange(trashedContent);
-
-        var publicDocs = allContent
+        var publicDocs = allDocuments
             .Where(content => content.Published && !content.Trashed)
             .DistinctBy(content => content.Id)
-            .Select(content => new Document
-            {
-                Status = DocumentStatus.Public,
-                Name = content.Name ?? string.Empty,
-                Link = $"/umbraco/section/content/workspace/document/edit/{content.Key}",
-                Type = content.ContentType.Alias,
-                TypeName = content.ContentType.Name ?? string.Empty,
-            })
+            .Select(content => new Document(content))
             .ToList();
 
-        var draftDocs = allContent
+        var draftDocs = allDocuments
             .Where(content => !content.Published && !content.Trashed)
             .DistinctBy(content => content.Id)
-            .Select(content => new Document
-            {
-                Status = DocumentStatus.Draft,
-                Name = content.Name ?? string.Empty,
-                Link = $"/umbraco/section/content/workspace/document/edit/{content.Key}",
-                Type = content.ContentType.Alias,
-                TypeName = content.ContentType.Name ?? string.Empty,
-            })
+            .Select(content => new Document(content))
             .ToList();
 
-        var trashedDocs = allContent
+        var trashedDocs = allDocuments
             .Where(content => content.Trashed)
             .DistinctBy(content => content.Id)
-            .Select(content => new Document
-            {
-                Status = DocumentStatus.Trashed,
-                Name = content.Name ?? string.Empty,
-                Link = $"/umbraco/section/content/workspace/document/edit/{content.Key}",
-                Type = content.ContentType.Alias,
-                TypeName = content.ContentType.Name ?? string.Empty,
-            })
+            .Select(content => new Document(content))
             .ToList();
 
         return Ok(new DocumentsByStatus
@@ -108,9 +75,67 @@ public class ContentInsightsController : ManagementApiControllerBase
             Public = publicDocs,
             Draft = draftDocs,
             Trashed = trashedDocs,
-            PublicCount = publicDocs.Count,
-            DraftCount = draftDocs.Count,
-            TrashedCount = trashedDocs.Count,
         });
+    }
+
+    [HttpGet("get-users-with-documents")]
+    [ProducesResponseType(typeof(IEnumerable<Author>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetUsersWithPermissions()
+    {
+        var neededPermissions = new[] { "Umb.Document.Create", "Umb.Document.Update", "Umb.Document.Publish" };
+
+        var matchingUsers = new List<Author>();
+        var userGroupsWithPermissions = (await _userGroupService.GetAllAsync(0, int.MaxValue)).Items
+            .Where(group => group.Permissions.Intersect(neededPermissions).Any()).ToList();
+
+        var allDocuments = GetAllDocuments();
+
+        foreach (var group in userGroupsWithPermissions)
+        {
+            var users = _userService.GetAllInGroup(group.Id);
+
+            foreach (var user in users)
+            {
+                matchingUsers.Add(new Author
+                {
+                    Name = user.Name ?? user.Username,
+                    Email = user.Email,
+                    Link = user.Key.ToString(),
+                    UserGroups = user.Groups.Select(group => new UserGroup(group.Alias, group.Key.ToString())),
+                    Documents = allDocuments
+                        .Where(document =>
+                            (document.PublisherId.HasValue && document.PublisherId == user.Id) ||
+                            (!document.PublisherId.HasValue && document.WriterId == user.Id))
+                        .Select(document => new Document(document)),
+                });
+            }
+        }
+
+        return Ok(matchingUsers);
+    }
+
+    private List<IContent> GetAllDocuments()
+    {
+        var allDocuments = new List<IContent>();
+
+        // Get all root documents.
+        var rootDocuments = _contentService.GetRootContent();
+        allDocuments.AddRange(rootDocuments);
+
+        // Get root documents' children.
+        foreach (var rootDocument in rootDocuments)
+        {
+            var descendants = _contentService.GetPagedDescendants(rootDocument.Id, 0, int.MaxValue, out _);
+
+            if (descendants != null)
+            {
+                allDocuments.AddRange(descendants);
+            }
+        }
+
+        // Get documents from recycle bin.
+        var trashedContent = _contentService.GetPagedContentInRecycleBin(0, int.MaxValue, out _);
+        allDocuments.AddRange(trashedContent);
+        return allDocuments;
     }
 }

@@ -10,10 +10,10 @@ import { UmbLitElement } from '@umbraco-cms/backoffice/lit-element';
 import { umbracoPath } from '@umbraco-cms/backoffice/utils';
 
 // Types.
-import type { DocumentType, DocumentsByStatus } from '../../shared/types';
+import type { Author, DocumentType, DocumentsByStatus } from '../../shared/types';
 
 // Shared utilities, constants.
-import { createBarChart, resetBarChart } from './charts/bar-chart';
+import { createBarChart, resetBarChart, updateBarChart } from './charts/bar-chart';
 import { renderDocumentsTable, onSort, onPageChange, filterDocumentTypes } from './render-documents-table';
 import type { DocumentsTableState } from './render-documents-table';
 
@@ -47,6 +47,7 @@ export class ContentOverview extends UmbLitElement {
         const select = event.target as HTMLSelectElement;
         const selectValue = select.value;
         filterDocumentTypes(selectValue, this.documentsTableState);
+        updateBarChart(selectValue);
         this.documentsTableState.currentPage = 1;
         this.requestUpdate();
     }
@@ -76,29 +77,27 @@ export class ContentOverview extends UmbLitElement {
         return html`
     <uui-box class="dashboard">
         <div class="dashboard-flex">
-            <div class="dashboard-section-flex">
+            <div class="dashboard-section user-contributions">
                 <div class="section-header">
-                    <uui-icon name="icon-bar-chart" style="font-size: 30px;"></uui-icon>
-                    <h2>Document count by Document Types</h2>
+                    <uui-icon name="icon-users" style="font-size: 30px;"></uui-icon>
+                    <h2>Document count by Users</h2>
+                </div>
+                <div>
+                    <p>
+                    In case of public and trashed documents, the user is the person who last published the document.
+                    </br>
+                    In case of draft documents, the user is the person who last edited the document.
+                    </p>
                 </div>
                 <div class="reset-button">
                     <p>Click on the bars to remove them, click on reset to reset the chart.</p>
                     <uui-button type="button" look="primary" color="danger" label="Reset" @click=${resetBarChart}></uui-button>
                 </div>
-                <uui-box class="chart-box bar-chart">
-                    <canvas id="contentByDocumentTypeChart"></canvas>
-                </uui-box>
-            </div>
-            <div class="dashboard-section-flex">
-                <div class="section-header">
-                    <uui-icon name="icon-pie-chart" style="font-size: 30px;"></uui-icon>
-                    <h2>Document count by Document Status</h2>
-                </div>
                 <div class="select-container">
                     <uui-select class="document-type-select" id="documentTypeSelect" label="documentTypeSelect" .options=${this.documentTypeSelectOptions} @change=${this.handleDocumentTypeSelectChange}></uui-select>
                 </div>
-                <uui-box class="chart-box pie-chart">
-                    <canvas id="contentByDocumentStatusChart"></canvas>
+                <uui-box class="chart-box bar-chart">
+                    <canvas id="contentByDocumentTypeChart"></canvas>
                 </uui-box>
             </div>
         </div>
@@ -113,8 +112,20 @@ export class ContentOverview extends UmbLitElement {
     }
 
     async firstUpdated() {
+
+        const getUsersWithDocumentsResponse = await tryExecute(this, umbHttpClient.get<Author[]>({
+            url: umbracoPath("/content-insights/get-users-with-documents"),
+        }));
+
+        let authors = getUsersWithDocumentsResponse.data;
+
+        if (!authors) {
+            this.hasError = true;
+            return;
+        }
+
         const getContentTypesResponse = await tryExecute(this, umbHttpClient.get<DocumentType[]>({
-            url: umbracoPath("/content-insights/get-content-types"),
+            url: umbracoPath("/content-insights/get-document-types"),
         }));
 
         let documentTypes = getContentTypesResponse.data;
@@ -126,13 +137,13 @@ export class ContentOverview extends UmbLitElement {
 
         this.documentTypeSelectOptions = [
             { name: 'All Document Types', value: 'all', selected: true },
-            ...documentTypes.map(type => ({ name: type.name, value: type.type })),
+            ...documentTypes
+                .slice()
+                .sort((a, b) => a.name.localeCompare(b.name))
+                .map(type => ({ name: type.name, value: type.type })),
         ];
-
-        const documentCounts = documentTypes.map(documentType => documentType.count);
-
         const barChartCtx = this.renderRoot.querySelector('#contentByDocumentTypeChart') as HTMLCanvasElement;
-        createBarChart(barChartCtx, documentTypes, documentCounts);
+        createBarChart(barChartCtx, authors);
 
         const getDocumentsByStatusResponse = await tryExecute(this, umbHttpClient.get<DocumentsByStatus>({
             url: umbracoPath("/content-insights/get-documents-by-status"),

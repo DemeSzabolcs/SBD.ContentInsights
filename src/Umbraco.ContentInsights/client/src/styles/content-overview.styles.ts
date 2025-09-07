@@ -10,7 +10,8 @@ export const contentOverviewStyles = css`
     padding: 24px;
     border-radius: 6px;
     margin-top: 40px;
-    max-width: 85vw;
+    width: 85vw;
+    max-width: 1300px;
     margin: auto;
   }
 

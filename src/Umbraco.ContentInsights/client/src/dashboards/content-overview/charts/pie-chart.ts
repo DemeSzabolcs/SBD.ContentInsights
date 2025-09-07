@@ -22,9 +22,9 @@ export function createPieChart(
             datasets: [
                 {
                     data: [
-                        documentsByStatus.publicCount,
-                        documentsByStatus.draftCount,
-                        documentsByStatus.trashedCount,
+                        documentsByStatus.public.length,
+                        documentsByStatus.draft.length,
+                        documentsByStatus.trashed.length,
                     ],
                     backgroundColor: [
                         'rgba(75, 192, 192, 0.7)',

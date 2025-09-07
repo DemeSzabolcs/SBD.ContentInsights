@@ -1,28 +1,30 @@
 import { Chart } from 'chart.js';
 import { barChartColors } from '../../../shared/constants';
-import type { DocumentType } from '../../../shared/types';
+import type { Author } from '../../../shared/types';
 
 let savedBarChart: Chart | null = null;
 let savedBarChartDatasetData: number[] | null = null;
 let savedBarChartLabels: string[] | null = null;
+let savedAuthors: Author[] | null = null;
 
 export function createBarChart(
     barChartCtx: HTMLCanvasElement,
-    documentTypes: DocumentType[],
-    documentCounts: number[],
+    authors: Author[],
 ): { barChart: Chart } {
+    savedAuthors = [...authors];
+    const authorDocumentCounts = authors.map(author => author.documents.length);
     const barChart = new Chart(barChartCtx, {
         type: 'bar',
         data: {
-            labels: documentTypes.map((documentType) => documentType.name),
+            labels: authors.map((author) => author.name),
             datasets: [
                 {
                     label: 'Number of Items',
-                    data: [...documentCounts],
-                    backgroundColor: documentCounts.map(
+                    data: authorDocumentCounts,
+                    backgroundColor: authorDocumentCounts.map(
                         (_, i) => barChartColors[i % barChartColors.length],
                     ),
-                    borderColor: documentCounts.map(
+                    borderColor: authorDocumentCounts.map(
                         (_, i) => barChartColors[i % barChartColors.length],
                     ),
                     borderWidth: 1,
@@ -125,5 +127,20 @@ export function resetBarChart(): void {
 
     savedBarChart.data.labels = [...savedBarChartLabels];
     savedBarChart.data.datasets[0].data = [...savedBarChartDatasetData];
+    savedBarChart.update();
+}
+
+export function updateBarChart(selectedType: string): void {
+    if (!savedBarChart || !savedBarChartDatasetData || !savedAuthors) return;
+
+    const authorDocumentCounts = savedAuthors.map(author => {
+        const filteredDocs = selectedType === 'all'
+            ? author.documents
+            : author.documents.filter(document => document.type === selectedType);
+
+        return filteredDocs.length;
+    });
+
+    savedBarChart.data.datasets[0].data = [...authorDocumentCounts];
     savedBarChart.update();
 }

@@ -9,8 +9,8 @@ let savedBarChartLabels: string[] | null = null;
 export function createBarChart(
     barChartCtx: HTMLCanvasElement,
     documentTypes: DocumentType[],
-    documentCounts: number[],
 ): { barChart: Chart } {
+    const documentCounts = documentTypes.map(documentType => documentType.count);
     const barChart = new Chart(barChartCtx, {
         type: 'bar',
         data: {
@@ -18,7 +18,7 @@ export function createBarChart(
             datasets: [
                 {
                     label: 'Number of Items',
-                    data: [...documentCounts],
+                    data: documentCounts,
                     backgroundColor: documentCounts.map(
                         (_, i) => barChartColors[i % barChartColors.length],
                     ),

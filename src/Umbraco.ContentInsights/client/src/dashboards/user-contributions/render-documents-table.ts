@@ -3,7 +3,7 @@ import type { UmbracoDocument } from '../../shared/types';
 import { convertDocumentStatusToNumberString, getTagColor } from '../../shared/utils';
 import type { UUIPaginationElement } from '@umbraco-cms/backoffice/external/uui';
 
-let savedDocuments: UmbracoDocument[] | null = null;
+let savedAuthors: UmbracoDocument[] | null = null;
 
 export type SortColumn = 'status' | 'name' | 'type' | null;
 
@@ -15,18 +15,18 @@ export interface DocumentsTableState {
     sortDescending: boolean;
 }
 export function filterDocumentTypes(selectValue: string, state: DocumentsTableState): void {
-    if (!savedDocuments) {
+    if (!savedAuthors) {
         if (state.documents) {
-            savedDocuments = [...state.documents];
+            savedAuthors = [...state.documents];
         } else {
             return;
         }
     }
 
     if (selectValue === "all") {
-        state.documents = [...savedDocuments];
+        state.documents = [...savedAuthors];
     } else {
-        state.documents = [...savedDocuments.filter(document => document.type === selectValue)];
+        state.documents = [...savedAuthors.filter(document => document.type === selectValue)];
     }
 }
 

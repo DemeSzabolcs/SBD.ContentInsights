@@ -116,7 +116,7 @@ export class ContentOverview extends UmbLitElement {
 
     async firstUpdated() {
         const getContentTypesResponse = await tryExecute(this, umbHttpClient.get<DocumentType[]>({
-            url: umbracoPath("/content-insights/get-content-types"),
+            url: umbracoPath("/content-insights/get-document-types"),
         }));
 
         let documentTypes = getContentTypesResponse.data;
@@ -128,13 +128,14 @@ export class ContentOverview extends UmbLitElement {
 
         this.documentTypeSelectOptions = [
             { name: 'All Document Types', value: 'all', selected: true },
-            ...documentTypes.map(type => ({ name: type.name, value: type.type })),
+            ...documentTypes
+                .slice()
+                .sort((a, b) => a.name.localeCompare(b.name))
+                .map(type => ({ name: type.name, value: type.type })),
         ];
 
-        const documentCounts = documentTypes.map(documentType => documentType.count);
-
         const barChartCtx = this.renderRoot.querySelector('#contentByDocumentTypeChart') as HTMLCanvasElement;
-        createBarChart(barChartCtx, documentTypes, documentCounts);
+        createBarChart(barChartCtx, documentTypes);
 
         const getDocumentsByStatusResponse = await tryExecute(this, umbHttpClient.get<DocumentsByStatus>({
             url: umbracoPath("/content-insights/get-documents-by-status"),

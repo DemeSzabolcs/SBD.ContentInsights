@@ -10,7 +10,8 @@ export const userContributionsStyles = css`
     padding: 24px;
     border-radius: 6px;
     margin-top: 40px;
-    max-width: 85vw;
+    width: 85vw;
+    max-width: 1300px;
     margin: auto;
   }
 
@@ -37,6 +38,11 @@ export const userContributionsStyles = css`
 
   .dashboard-section {
     margin-bottom: 32px;
+  }
+
+  .user-contributions{
+      max-width: 60%;
+        margin: auto;
   }
 
   .section-header {
