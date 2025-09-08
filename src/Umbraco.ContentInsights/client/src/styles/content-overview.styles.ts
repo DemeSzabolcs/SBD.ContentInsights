@@ -1,6 +1,9 @@
 import { css } from 'lit';
+import { documentsTableStyles } from './documents-table.styles';
 
-export const contentOverviewStyles = css`
+export const contentOverviewStyles = [
+    documentsTableStyles,
+    css`
   :host {
     display: block;
     margin: 0 auto;
@@ -102,34 +105,5 @@ export const contentOverviewStyles = css`
   .error-message > * {
     padding-right: 10px;
   }
-
-  .content-table > table {
-    width: 100%;
-    padding-bottom: 40px;
-  }
-
-  .content-table > table > thead {
-    vertical-align: baseline;
-  }
-
-  .content-table-header {
-    text-align: left;
-  }
-
-  .content-table-header > th {
-    padding-bottom: 10px;
-  }
-
-  .content-table-header > th:nth-child(1),
-  .content-table-header > th:nth-child(4) {
-    width: 13%;
-  }
-
-  .content-table-header > th:nth-child(2) {
-    width: 40%;
-  }
-
-  .content-table-header > th:nth-child(3) {
-    width: 34%;
-  }
-`;
+`,
+];

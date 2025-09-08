@@ -116,10 +116,10 @@ export function renderDocumentsTable(
         <p class="items-per-page">Items per page:</p>
         <uui-select id="itemPerPageSelect" label="itemPerPageSelect" .options=${itemsPerPageOptions} @change=${onItemsPerPageChange}></uui-select>
       </div>
-      <div class="content-table">
+      <div class="document-table">
         <table>
           <thead>
-            <tr class="content-table-header">
+            <tr class="document-table-header">
               <th @click=${() => onSortClick('status')}>
                 <uui-button type="button" look="outline" color="default" label="Status"></uui-button>
                 <uui-symbol-sort
@@ -174,6 +174,7 @@ export function renderDocumentsTable(
           previouslabel="&lt;"
           nextlabel="&gt;"
           lastlabel="&gt;&gt;"
+          class="document-table-pagination"
           .current=${state.currentPage}
           .total=${getTotalPages(state)}
           @change=${onPageChangeHandler}>

@@ -1,6 +1,9 @@
 import { css } from 'lit';
+import { documentsTableStyles } from './documents-table.styles';
 
-export const userContributionsStyles = css`
+export const userContributionsStyles = [
+    documentsTableStyles,
+    css`
   :host {
     display: block;
     margin: 0 auto;
@@ -38,11 +41,6 @@ export const userContributionsStyles = css`
 
   .dashboard-section {
     margin-bottom: 32px;
-  }
-
-  .user-contributions{
-      max-width: 60%;
-        margin: auto;
   }
 
   .section-header {
@@ -87,11 +85,6 @@ export const userContributionsStyles = css`
     align-items: center;
   }
 
-  .items-per-page {
-    margin-left: auto;
-    padding-right: 10px;
-  }
-
   .document-type-select {
     margin-left: auto;
   }
@@ -107,34 +100,5 @@ export const userContributionsStyles = css`
   .error-message > * {
     padding-right: 10px;
   }
-
-  .content-table > table {
-    width: 100%;
-    padding-bottom: 40px;
-  }
-
-  .content-table > table > thead {
-    vertical-align: baseline;
-  }
-
-  .content-table-header {
-    text-align: left;
-  }
-
-  .content-table-header > th {
-    padding-bottom: 10px;
-  }
-
-  .content-table-header > th:nth-child(1),
-  .content-table-header > th:nth-child(4) {
-    width: 13%;
-  }
-
-  .content-table-header > th:nth-child(2) {
-    width: 40%;
-  }
-
-  .content-table-header > th:nth-child(3) {
-    width: 34%;
-  }
-`;
+`,
+];
