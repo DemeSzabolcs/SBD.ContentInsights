@@ -1,18 +1,25 @@
 import { Chart } from 'chart.js';
 import { barChartColors } from '../../../shared/constants';
-import type { Author } from '../../../shared/types';
+import { DocumentsWithAuthors } from '../../../shared/types';
+import { getAuthorDocumentCounts } from '../../../shared/utils';
+
 
 let savedBarChart: Chart | null = null;
 let savedBarChartDatasetData: number[] | null = null;
 let savedBarChartLabels: string[] | null = null;
-let savedAuthors: Author[] | null = null;
+let savedDocumentsWithAuthors: DocumentsWithAuthors | null = null;
 
 export function createBarChart(
     barChartCtx: HTMLCanvasElement,
-    authors: Author[],
+    documentsWithAuthors: DocumentsWithAuthors,
 ): { barChart: Chart } {
-    savedAuthors = [...authors];
-    const authorDocumentCounts = authors.map(author => author.documents.length);
+    const authors = documentsWithAuthors.authors;
+
+    savedDocumentsWithAuthors = new DocumentsWithAuthors();
+    savedDocumentsWithAuthors.documents = [...documentsWithAuthors.documents];
+    savedDocumentsWithAuthors.authors = [...documentsWithAuthors.authors];
+
+    const authorDocumentCounts = getAuthorDocumentCounts(documentsWithAuthors);
     const barChart = new Chart(barChartCtx, {
         type: 'bar',
         data: {
@@ -131,15 +138,11 @@ export function resetBarChart(): void {
 }
 
 export function updateBarChart(selectedType: string): void {
-    if (!savedBarChart || !savedBarChartDatasetData || !savedAuthors) return;
+    if (!savedBarChart || !savedBarChartDatasetData || !savedDocumentsWithAuthors) return;
 
-    const authorDocumentCounts = savedAuthors.map(author => {
-        const filteredDocs = selectedType === 'all'
-            ? author.documents
-            : author.documents.filter(document => document.type === selectedType);
-
-        return filteredDocs.length;
-    });
+    const authorDocumentCounts = selectedType === 'all'
+        ? getAuthorDocumentCounts(savedDocumentsWithAuthors)
+        : getAuthorDocumentCounts(savedDocumentsWithAuthors, selectedType)
 
     savedBarChart.data.datasets[0].data = [...authorDocumentCounts];
     savedBarChart.update();

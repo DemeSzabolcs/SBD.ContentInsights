@@ -23,7 +23,7 @@ export const dashboardsManifest: UmbExtensionManifest[] = [
         name: 'User Contributions',
         elementName: 'user-contributions',
         element: () =>
-            import('./content-overview/content-overview').then((m) => ({ default: m.ContentOverview })),
+            import('./user-contributions/user-contributions').then((m) => ({ default: m.ContentOverview })),
         meta: {
             label: 'User Contributions',
             pathname: 'user-contributions',

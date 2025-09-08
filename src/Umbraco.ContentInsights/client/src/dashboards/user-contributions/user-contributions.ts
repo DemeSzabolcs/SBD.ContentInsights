@@ -10,12 +10,13 @@ import { UmbLitElement } from '@umbraco-cms/backoffice/lit-element';
 import { umbracoPath } from '@umbraco-cms/backoffice/utils';
 
 // Types.
-import type { Author, DocumentType, DocumentsByStatus } from '../../shared/types';
+import type { DocumentType } from '../../shared/types';
+import { DocumentsWithAuthors } from '../../shared/types';
 
 // Shared utilities, constants.
 import { createBarChart, resetBarChart, updateBarChart } from './charts/bar-chart';
-import { renderDocumentsTable, onSort, onPageChange, filterDocumentTypes } from './render-documents-table';
-import type { DocumentsTableState } from './render-documents-table';
+import { renderDocumentsTable, onSort, onPageChange, filterDocumentTypes } from '../shared/render-documents-table';
+import type { DocumentsTableState } from '../shared/render-documents-table';
 
 // Styles.
 import { userContributionsStyles } from '../../styles/user-contributions.styles';
@@ -25,7 +26,7 @@ Chart.register(...registerables);
 @customElement('user-contributions')
 export class ContentOverview extends UmbLitElement {
     @state() private documentsTableState: DocumentsTableState = {
-        documents: [],
+        documentsWithAuthors: new DocumentsWithAuthors(),
         currentPage: 1,
         itemsPerPage: 10,
         sortColumn: null,
@@ -35,7 +36,7 @@ export class ContentOverview extends UmbLitElement {
     @state() private documentTypeSelectOptions: Option[] = [];
     @state() private hasError: boolean = false;
 
-    private handleSort(column: 'status' | 'name' | 'type') {
+    private handleSort(column: 'status' | 'name' | 'type' | 'author') {
         this.documentsTableState = onSort(this.documentsTableState, column);
     }
 
@@ -77,7 +78,7 @@ export class ContentOverview extends UmbLitElement {
         return html`
     <uui-box class="dashboard">
         <div class="dashboard-flex">
-            <div class="dashboard-section user-contributions">
+            <div class="dashboard-section">
                 <div class="section-header">
                     <uui-icon name="icon-users" style="font-size: 30px;"></uui-icon>
                     <h2>Document count by Users</h2>
@@ -113,13 +114,13 @@ export class ContentOverview extends UmbLitElement {
 
     async firstUpdated() {
 
-        const getUsersWithDocumentsResponse = await tryExecute(this, umbHttpClient.get<Author[]>({
-            url: umbracoPath("/content-insights/get-users-with-documents"),
+        const getDocumentsWithAuthorsResponse = await tryExecute(this, umbHttpClient.get<DocumentsWithAuthors>({
+            url: umbracoPath("/content-insights/get-all-documents-with-authors"),
         }));
 
-        let authors = getUsersWithDocumentsResponse.data;
+        const documentsWithAuthorsData = getDocumentsWithAuthorsResponse.data;
 
-        if (!authors) {
+        if (!documentsWithAuthorsData?.documents || !documentsWithAuthorsData?.authors) {
             this.hasError = true;
             return;
         }
@@ -142,27 +143,13 @@ export class ContentOverview extends UmbLitElement {
                 .sort((a, b) => a.name.localeCompare(b.name))
                 .map(type => ({ name: type.name, value: type.type })),
         ];
+
         const barChartCtx = this.renderRoot.querySelector('#contentByDocumentTypeChart') as HTMLCanvasElement;
-        createBarChart(barChartCtx, authors);
-
-        const getDocumentsByStatusResponse = await tryExecute(this, umbHttpClient.get<DocumentsByStatus>({
-            url: umbracoPath("/content-insights/get-documents-by-status"),
-        }));
-
-        const documentsByStatus = getDocumentsByStatusResponse.data;
-
-        if (!documentsByStatus) {
-            this.hasError = true;
-            return;
-        }
+        createBarChart(barChartCtx, documentsWithAuthorsData);
 
         this.documentsTableState = {
             ...this.documentsTableState,
-            documents: [
-                ...documentsByStatus.public,
-                ...documentsByStatus.draft,
-                ...documentsByStatus.trashed,
-            ],
+            documentsWithAuthors: documentsWithAuthorsData
         };
     }
 

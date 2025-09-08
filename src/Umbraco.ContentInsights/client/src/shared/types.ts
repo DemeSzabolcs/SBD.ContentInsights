@@ -9,16 +9,17 @@ export type UserGroup = {
     key: string;
 };
 
-export enum DocumentStatus {
-    Public,
-    Draft,
-    Trashed,
-}
 
 export class DocumentsByStatus {
     public: UmbracoDocument[] = [];
     draft: UmbracoDocument[] = [];
     trashed: UmbracoDocument[] = [];
+}
+
+export enum DocumentStatus {
+    Public,
+    Draft,
+    Trashed,
 }
 
 export type UmbracoDocument = {

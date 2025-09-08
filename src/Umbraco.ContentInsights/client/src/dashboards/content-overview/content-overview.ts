@@ -10,15 +10,15 @@ import { UmbLitElement } from '@umbraco-cms/backoffice/lit-element';
 import { umbracoPath } from '@umbraco-cms/backoffice/utils';
 
 // Types.
-import type { DocumentType, DocumentsByStatus } from '../../shared/types';
+import type { DocumentType } from '../../shared/types';
 import { DocumentsWithAuthors } from '../../shared/types';
 
 // Shared utilities, constants.
 import { createBarChart, resetBarChart } from './charts/bar-chart';
 import { createPieChart, updatePieChart } from './charts/pie-chart';
-import { renderDocumentsTable, onSort, onPageChange, filterDocumentTypes } from './render-documents-table';
-import type { DocumentsTableState } from './render-documents-table';
-import { convertDocumentStatusToNumberString } from '../../shared/utils';
+import { renderDocumentsTable, onSort, onPageChange, filterDocumentTypes } from '../shared/documents-table';
+import type { DocumentsTableState } from '../shared/documents-table';
+import { groupDocumentsByStatus } from '../../shared/utils';
 
 
 // Styles.
@@ -156,17 +156,7 @@ export class ContentOverview extends UmbLitElement {
             documentsWithAuthors: documentsWithAuthorsData
         };
 
-        const documentsByStatus: DocumentsByStatus = {
-            public: documentsWithAuthorsData.documents.filter(
-                (document) => convertDocumentStatusToNumberString(document.status) === "0"
-            ),
-            draft: documentsWithAuthorsData.documents.filter(
-                (document) => convertDocumentStatusToNumberString(document.status) === "1"
-            ),
-            trashed: documentsWithAuthorsData.documents.filter(
-                (document) => convertDocumentStatusToNumberString(document.status) === "2"
-            ),
-        };
+        const documentsByStatus = groupDocumentsByStatus(documentsWithAuthorsData.documents);
 
         const pieChartCtx = this.renderRoot.querySelector('#contentByDocumentStatusChart') as HTMLCanvasElement;
         createPieChart(pieChartCtx, documentsByStatus);
