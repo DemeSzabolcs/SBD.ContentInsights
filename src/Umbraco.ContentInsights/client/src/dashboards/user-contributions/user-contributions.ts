@@ -14,7 +14,7 @@ import type { DocumentType } from '../../shared/types';
 import { DocumentsWithAuthors } from '../../shared/types';
 
 // Shared utilities, constants.
-import { createBarChart, resetBarChart, updateBarChart } from './charts/bar-chart';
+import { createAuthorBarChart, resetAuthorBarChart, updateAuthorBarChart } from './charts/bar-chart';
 import { renderDocumentsTable, onSort, onPageChange, filterDocumentTypes } from '../shared/documents-table';
 import type { DocumentsTableState } from '../shared/documents-table';
 
@@ -48,7 +48,7 @@ export class ContentOverview extends UmbLitElement {
         const select = event.target as HTMLSelectElement;
         const selectValue = select.value;
         filterDocumentTypes(selectValue, this.documentsTableState);
-        updateBarChart(selectValue);
+        updateAuthorBarChart(selectValue);
         this.documentsTableState.currentPage = 1;
         this.requestUpdate();
     }
@@ -92,7 +92,7 @@ export class ContentOverview extends UmbLitElement {
                 </div>
                 <div class="reset-button">
                     <p>Click on the bars to remove them, click on reset to reset the chart.</p>
-                    <uui-button type="button" look="primary" color="danger" label="Reset" @click=${resetBarChart}></uui-button>
+                    <uui-button type="button" look="primary" color="danger" label="Reset" @click=${resetAuthorBarChart}></uui-button>
                 </div>
                 <div class="select-container">
                     <uui-select class="document-type-select" id="documentTypeSelect" label="documentTypeSelect" .options=${this.documentTypeSelectOptions} @change=${this.handleDocumentTypeSelectChange}></uui-select>
@@ -145,7 +145,7 @@ export class ContentOverview extends UmbLitElement {
         ];
 
         const barChartCtx = this.renderRoot.querySelector('#contentByDocumentTypeChart') as HTMLCanvasElement;
-        createBarChart(barChartCtx, documentsWithAuthorsData);
+        createAuthorBarChart(barChartCtx, documentsWithAuthorsData);
 
         this.documentsTableState = {
             ...this.documentsTableState,

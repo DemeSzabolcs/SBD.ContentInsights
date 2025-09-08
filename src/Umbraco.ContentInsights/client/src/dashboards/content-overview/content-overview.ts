@@ -14,7 +14,7 @@ import type { DocumentType } from '../../shared/types';
 import { DocumentsWithAuthors } from '../../shared/types';
 
 // Shared utilities, constants.
-import { createBarChart, resetBarChart } from './charts/bar-chart';
+import { createDocumentTypeBarChart, resetDocumentTypeBarChart } from './charts/bar-chart';
 import { createPieChart, updatePieChart } from './charts/pie-chart';
 import { renderDocumentsTable, onSort, onPageChange, filterDocumentTypes } from '../shared/documents-table';
 import type { DocumentsTableState } from '../shared/documents-table';
@@ -88,7 +88,7 @@ export class ContentOverview extends UmbLitElement {
                 </div>
                 <div class="reset-button">
                     <p>Click on the bars to remove them, click on reset to reset the chart.</p>
-                    <uui-button type="button" look="primary" color="danger" label="Reset" @click=${resetBarChart}></uui-button>
+                    <uui-button type="button" look="primary" color="danger" label="Reset" @click=${resetDocumentTypeBarChart}></uui-button>
                 </div>
                 <uui-box class="chart-box bar-chart">
                     <canvas id="contentByDocumentTypeChart"></canvas>
@@ -138,7 +138,7 @@ export class ContentOverview extends UmbLitElement {
         ];
 
         const barChartCtx = this.renderRoot.querySelector('#contentByDocumentTypeChart') as HTMLCanvasElement;
-        createBarChart(barChartCtx, documentTypes);
+        createDocumentTypeBarChart(barChartCtx, documentTypes);
 
         const getDocumentsWithAuthorsResponse = await tryExecute(this, umbHttpClient.get<DocumentsWithAuthors>({
             url: umbracoPath("/content-insights/get-all-documents-with-authors"),
