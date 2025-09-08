@@ -15,8 +15,8 @@ import { DocumentsWithAuthors } from '../../shared/types';
 
 // Shared utilities, constants.
 import { createBarChart, resetBarChart, updateBarChart } from './charts/bar-chart';
-import { renderDocumentsTable, onSort, onPageChange, filterDocumentTypes } from '../shared/render-documents-table';
-import type { DocumentsTableState } from '../shared/render-documents-table';
+import { renderDocumentsTable, onSort, onPageChange, filterDocumentTypes } from '../shared/documents-table';
+import type { DocumentsTableState } from '../shared/documents-table';
 
 // Styles.
 import { userContributionsStyles } from '../../styles/user-contributions.styles';
