@@ -1,5 +1,5 @@
 import { DocumentStatus, Author, DocumentsByStatus } from "./types";
-import type { UmbracoDocument, DocumentsWithAuthors } from "./types";
+import type { UmbracoDocument, DocumentsWithAuthors, DocumentType } from "./types";
 
 export const convertDocumentStatusToNumberString = (documentStatus: DocumentStatus): string => {
     switch (documentStatus as unknown as string) {
@@ -65,4 +65,14 @@ export function getAuthorDocumentCounts(
         );
         return authorDocs.length;
     });
+}
+
+export function buildDocumentTypeSelectOptions(documentTypes: DocumentType[]) {
+    return [
+        { name: 'All Document Types', value: 'all', selected: true },
+        ...documentTypes
+            .slice()
+            .sort((a, b) => a.name.localeCompare(b.name))
+            .map((type) => ({ name: type.name, value: type.type })),
+    ];
 }

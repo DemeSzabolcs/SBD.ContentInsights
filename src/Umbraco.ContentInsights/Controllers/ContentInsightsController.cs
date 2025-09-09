@@ -4,6 +4,7 @@ using Umbraco.Cms.Api.Management.Controllers;
 using Umbraco.Cms.Api.Management.Routing;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Services;
+using Umbraco.ContentInsights.Constants;
 using Umbraco.ContentInsights.Models;
 
 namespace Umbraco.ContentInsights.Controllers;
@@ -81,9 +82,20 @@ public class ContentInsightsController : ManagementApiControllerBase
             }
         }
 
+        var orderedDocuments = allDocuments
+            .OrderBy(document => document.Status switch
+            {
+                DocumentStatus.Public => 0,
+                DocumentStatus.Draft => 1,
+                DocumentStatus.Trashed => 2,
+                _ => 3,
+            })
+            .ThenBy(document => document.Name)
+            .ToList();
+
         var allDocumentsAndAuthors = new DocumentsWithAuthors
         {
-            Documents = allDocuments,
+            Documents = orderedDocuments,
             Authors = matchingUsers,
         };
 
@@ -92,11 +104,11 @@ public class ContentInsightsController : ManagementApiControllerBase
 
     private List<IContent> GetAllDocuments()
     {
-        var allDocuments = new List<IContent>();
+        var allContent = new List<IContent>();
 
         // Get all root documents.
         var rootDocuments = _contentService.GetRootContent();
-        allDocuments.AddRange(rootDocuments);
+        allContent.AddRange(rootDocuments);
 
         // Get root documents' children.
         foreach (var rootDocument in rootDocuments)
@@ -105,13 +117,13 @@ public class ContentInsightsController : ManagementApiControllerBase
 
             if (descendants != null)
             {
-                allDocuments.AddRange(descendants);
+                allContent.AddRange(descendants);
             }
         }
 
         // Get documents from recycle bin.
         var trashedContent = _contentService.GetPagedContentInRecycleBin(0, int.MaxValue, out _);
-        allDocuments.AddRange(trashedContent);
-        return allDocuments;
+        allContent.AddRange(trashedContent);
+        return allContent;
     }
 }

@@ -16,9 +16,10 @@ import { DocumentsWithAuthors } from '../../shared/types';
 // Shared utilities, constants.
 import { createDocumentTypeBarChart, resetDocumentTypeBarChart } from './charts/bar-chart';
 import { createPieChart, updatePieChart } from './charts/pie-chart';
-import { renderDocumentsTable, onSort, onPageChange, filterDocumentTypes } from '../shared/documents-table';
-import type { DocumentsTableState } from '../shared/documents-table';
-import { groupDocumentsByStatus } from '../../shared/utils';
+import { renderDocumentsTable, onSort, onPageChange, filterDocumentTypes } from '../../shared/render/documents-table';
+import type { DocumentsTableState } from '../../shared/render/documents-table';
+import { renderDashboardError } from '../../shared/render/error';
+import { buildDocumentTypeSelectOptions, groupDocumentsByStatus } from '../../shared/utils';
 
 
 // Styles.
@@ -38,10 +39,6 @@ export class ContentOverview extends UmbLitElement {
 
     @state() private documentTypeSelectOptions: Option[] = [];
     @state() private hasError: boolean = false;
-
-    private handleSort(column: 'status' | 'name' | 'type' | 'author') {
-        this.documentsTableState = onSort(this.documentsTableState, column);
-    }
 
     private handlePageChange(event: CustomEvent) {
         this.documentsTableState = onPageChange(this.documentsTableState, event);
@@ -68,14 +65,9 @@ export class ContentOverview extends UmbLitElement {
 
     render() {
         if (this.hasError) {
-            return html`
-            <uui-box class="dashboard">
-                <div class="error-message">
-                    <uui-icon name="icon-application-error" style="font-size: 30px;"></uui-icon>
-                    <h2>No documents were found. Try creating documents, then reload the page.</h2>
-                </div>
-            </uui-box>
-        `;
+            if (this.hasError) {
+                renderDashboardError();
+            }
         }
 
         return html`
@@ -109,7 +101,7 @@ export class ContentOverview extends UmbLitElement {
         </div>
       ${renderDocumentsTable(
             this.documentsTableState,
-            (column) => this.handleSort(column),
+            (column) => this.documentsTableState = onSort(this.documentsTableState, column),
             (event) => this.handlePageChange(event),
             (event) => this.handleItemsPerPageChange(event)
         )}
@@ -129,13 +121,7 @@ export class ContentOverview extends UmbLitElement {
             return;
         }
 
-        this.documentTypeSelectOptions = [
-            { name: 'All Document Types', value: 'all', selected: true },
-            ...documentTypes
-                .slice()
-                .sort((a, b) => a.name.localeCompare(b.name))
-                .map(type => ({ name: type.name, value: type.type })),
-        ];
+        this.documentTypeSelectOptions = buildDocumentTypeSelectOptions(documentTypes);
 
         const barChartCtx = this.renderRoot.querySelector('#contentByDocumentTypeChart') as HTMLCanvasElement;
         createDocumentTypeBarChart(barChartCtx, documentTypes);
