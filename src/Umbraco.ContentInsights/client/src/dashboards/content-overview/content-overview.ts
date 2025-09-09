@@ -22,7 +22,7 @@ import { groupDocumentsByStatus } from '../../shared/utils';
 
 
 // Styles.
-import { contentOverviewStyles } from '../../styles/content-overview.styles';
+import { generalStyles } from '../../styles/general.styles';
 
 Chart.register(...registerables);
 
@@ -162,7 +162,7 @@ export class ContentOverview extends UmbLitElement {
         createPieChart(pieChartCtx, documentsByStatus);
     }
 
-    static styles = contentOverviewStyles;
+    static styles = generalStyles;
 }
 
 declare global {

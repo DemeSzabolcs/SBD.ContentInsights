@@ -19,7 +19,7 @@ import { renderDocumentsTable, onSort, onPageChange, filterDocumentTypes } from 
 import type { DocumentsTableState } from '../shared/documents-table';
 
 // Styles.
-import { userContributionsStyles } from '../../styles/user-contributions.styles';
+import { generalStyles } from '../../styles/general.styles';
 
 Chart.register(...registerables);
 
@@ -153,7 +153,7 @@ export class ContentOverview extends UmbLitElement {
         };
     }
 
-    static styles = userContributionsStyles;
+    static styles = generalStyles;
 }
 
 declare global {

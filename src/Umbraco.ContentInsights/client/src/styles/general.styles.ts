@@ -1,7 +1,7 @@
 import { css } from 'lit';
 import { documentsTableStyles } from './documents-table.styles';
 
-export const userContributionsStyles = [
+export const generalStyles = [
     documentsTableStyles,
     css`
   :host {
@@ -83,6 +83,11 @@ export const userContributionsStyles = [
     padding-bottom: 20px;
     display: flex;
     align-items: center;
+  }
+
+  .items-per-page {
+    margin-left: auto;
+    padding-right: 10px;
   }
 
   .document-type-select {
