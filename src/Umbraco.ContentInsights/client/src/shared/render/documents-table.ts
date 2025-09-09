@@ -109,7 +109,7 @@ export function renderDocumentsTable(
     return html`
     <div class="dashboard-section">
       <div class="section-header">
-        <uui-icon name="icon-bulleted-list" style="font-size: 30px;"></uui-icon>
+        <uui-icon name="icon-bulleted-list" class="uii-icon"></uui-icon>
         <h2>Documents</h2>
       </div>
       <div class="select-container">

@@ -4,7 +4,6 @@ using Umbraco.Cms.Api.Management.Controllers;
 using Umbraco.Cms.Api.Management.Routing;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Services;
-using Umbraco.ContentInsights.Constants;
 using Umbraco.ContentInsights.Models;
 
 namespace Umbraco.ContentInsights.Controllers;
@@ -83,13 +82,7 @@ public class ContentInsightsController : ManagementApiControllerBase
         }
 
         var orderedDocuments = allDocuments
-            .OrderBy(document => document.Status switch
-            {
-                DocumentStatus.Public => 0,
-                DocumentStatus.Draft => 1,
-                DocumentStatus.Trashed => 2,
-                _ => 3,
-            })
+            .OrderBy(document => document.Status)
             .ThenBy(document => document.Name)
             .ToList();
 

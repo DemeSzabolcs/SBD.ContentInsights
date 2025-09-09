@@ -105,5 +105,13 @@ export const generalStyles = [
   .error-message > * {
     padding-right: 10px;
   }
+
+  .uii-icon{
+      font-size: 30px;
+  }
+
+  .document-count{
+      padding-right: 10px;
+  }
 `,
 ];

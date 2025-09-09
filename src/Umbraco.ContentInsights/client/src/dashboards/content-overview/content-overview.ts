@@ -19,7 +19,7 @@ import { createPieChart, updatePieChart } from './charts/pie-chart';
 import { renderDocumentsTable, onSort, onPageChange, filterDocumentTypes } from '../../shared/render/documents-table';
 import type { DocumentsTableState } from '../../shared/render/documents-table';
 import { renderDashboardError } from '../../shared/render/error';
-import { buildDocumentTypeSelectOptions, groupDocumentsByStatus } from '../../shared/utils';
+import { buildDocumentTypeSelectOptions, groupDocumentsByStatus, onItemsPerPageChange } from '../../shared/utils';
 
 
 // Styles.
@@ -39,10 +39,7 @@ export class ContentOverview extends UmbLitElement {
 
     @state() private documentTypeSelectOptions: Option[] = [];
     @state() private hasError: boolean = false;
-
-    private handlePageChange(event: CustomEvent) {
-        this.documentsTableState = onPageChange(this.documentsTableState, event);
-    }
+    @state() private documentCount: number = 0;
 
     private handleDocumentTypeSelectChange(event: Event) {
         const select = event.target as HTMLSelectElement;
@@ -50,17 +47,16 @@ export class ContentOverview extends UmbLitElement {
         updatePieChart(selectValue);
         filterDocumentTypes(selectValue, this.documentsTableState);
         this.documentsTableState.currentPage = 1;
+
+        if (selectValue === "all") {
+            this.documentCount = this.documentsTableState.documentsWithAuthors.documents.length;
+        } else {
+            this.documentCount = this.documentsTableState.documentsWithAuthors.documents
+                .filter(document => document.type === selectValue)
+                .length;
+        }
+
         this.requestUpdate();
-    }
-
-    private handleItemsPerPageChange(event: Event) {
-        const select = event.target as HTMLSelectElement;
-        const selectValue = Number(select.value);
-
-        this.documentsTableState = {
-            ...this.documentsTableState,
-            itemsPerPage: selectValue,
-        };
     }
 
     render() {
@@ -75,7 +71,7 @@ export class ContentOverview extends UmbLitElement {
         <div class="dashboard-flex">
             <div class="dashboard-section-flex">
                 <div class="section-header">
-                    <uui-icon name="icon-bar-chart" style="font-size: 30px;"></uui-icon>
+                    <uui-icon name="icon-bar-chart" class="uii-icon"></uui-icon>
                     <h2>Document count by Document Types</h2>
                 </div>
                 <div class="reset-button">
@@ -88,10 +84,13 @@ export class ContentOverview extends UmbLitElement {
             </div>
             <div class="dashboard-section-flex">
                 <div class="section-header">
-                    <uui-icon name="icon-pie-chart" style="font-size: 30px;"></uui-icon>
+                    <uui-icon name="icon-pie-chart" class="uii-icon"></uui-icon>
                     <h2>Document count by Document Status</h2>
                 </div>
                 <div class="select-container">
+                     <uui-icon name="icon-calculator" class="uii-icon"></uui-icon>
+                     <h3 class="document-count">Document count: </h3>
+                     <uui-tag class="uii-icon">${this.documentCount}</uui-tag>
                     <uui-select class="document-type-select" id="documentTypeSelect" label="documentTypeSelect" .options=${this.documentTypeSelectOptions} @change=${this.handleDocumentTypeSelectChange}></uui-select>
                 </div>
                 <uui-box class="chart-box pie-chart">
@@ -102,8 +101,8 @@ export class ContentOverview extends UmbLitElement {
       ${renderDocumentsTable(
             this.documentsTableState,
             (column) => this.documentsTableState = onSort(this.documentsTableState, column),
-            (event) => this.handlePageChange(event),
-            (event) => this.handleItemsPerPageChange(event)
+            (event) => this.documentsTableState = onPageChange(this.documentsTableState, event),
+            (event) => this.documentsTableState = onItemsPerPageChange(this.documentsTableState, event)
         )}
     </uui-box>
     `
@@ -141,6 +140,8 @@ export class ContentOverview extends UmbLitElement {
             ...this.documentsTableState,
             documentsWithAuthors: documentsWithAuthorsData
         };
+
+        this.documentCount = documentsWithAuthorsData.documents.length;
 
         const documentsByStatus = groupDocumentsByStatus(documentsWithAuthorsData.documents);
 

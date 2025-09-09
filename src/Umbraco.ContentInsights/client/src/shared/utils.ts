@@ -1,3 +1,4 @@
+import type { DocumentsTableState } from "./render/documents-table";
 import { DocumentStatus, Author, DocumentsByStatus } from "./types";
 import type { UmbracoDocument, DocumentsWithAuthors, DocumentType } from "./types";
 
@@ -75,4 +76,17 @@ export function buildDocumentTypeSelectOptions(documentTypes: DocumentType[]) {
             .sort((a, b) => a.name.localeCompare(b.name))
             .map((type) => ({ name: type.name, value: type.type })),
     ];
+}
+
+export function onItemsPerPageChange(
+    state: DocumentsTableState,
+    event: Event
+): DocumentsTableState {
+    const select = event.target as HTMLSelectElement;
+    const selectValue = Number(select.value);
+
+    return {
+        ...state,
+        itemsPerPage: selectValue,
+    };
 }

@@ -18,7 +18,7 @@ import { createAuthorBarChart, resetAuthorBarChart, updateAuthorBarChart } from 
 import { renderDocumentsTable, onSort, onPageChange, filterDocumentTypes } from '../../shared/render/documents-table';
 import type { DocumentsTableState } from '../../shared/render/documents-table';
 import { renderDashboardError } from '../../shared/render/error';
-import { buildDocumentTypeSelectOptions } from '../../shared/utils';
+import { buildDocumentTypeSelectOptions, onItemsPerPageChange } from '../../shared/utils';
 
 // Styles.
 import { generalStyles } from '../../styles/general.styles';
@@ -38,10 +38,6 @@ export class ContentOverview extends UmbLitElement {
     @state() private documentTypeSelectOptions: Option[] = [];
     @state() private hasError: boolean = false;
 
-    private handlePageChange(event: CustomEvent) {
-        this.documentsTableState = onPageChange(this.documentsTableState, event);
-    }
-
     private handleDocumentTypeSelectChange(event: Event) {
         const select = event.target as HTMLSelectElement;
         const selectValue = select.value;
@@ -49,16 +45,6 @@ export class ContentOverview extends UmbLitElement {
         updateAuthorBarChart(selectValue);
         this.documentsTableState.currentPage = 1;
         this.requestUpdate();
-    }
-
-    private handleItemsPerPageChange(event: Event) {
-        const select = event.target as HTMLSelectElement;
-        const selectValue = Number(select.value);
-
-        this.documentsTableState = {
-            ...this.documentsTableState,
-            itemsPerPage: selectValue,
-        };
     }
 
     render() {
@@ -71,7 +57,7 @@ export class ContentOverview extends UmbLitElement {
         <div class="dashboard-flex">
             <div class="dashboard-section">
                 <div class="section-header">
-                    <uui-icon name="icon-users" style="font-size: 30px;"></uui-icon>
+                    <uui-icon name="icon-users" class="uii-icon"></uui-icon>
                     <h2>Document count by Users</h2>
                 </div>
                 <div>
@@ -96,8 +82,8 @@ export class ContentOverview extends UmbLitElement {
       ${renderDocumentsTable(
             this.documentsTableState,
             (column) => this.documentsTableState = onSort(this.documentsTableState, column),
-            (event) => this.handlePageChange(event),
-            (event) => this.handleItemsPerPageChange(event)
+            (event) => this.documentsTableState = onPageChange(this.documentsTableState, event),
+            (event) => this.documentsTableState = onItemsPerPageChange(this.documentsTableState, event)
         )}
     </uui-box>
     `
