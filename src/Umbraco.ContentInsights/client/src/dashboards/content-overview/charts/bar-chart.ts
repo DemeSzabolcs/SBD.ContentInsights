@@ -1,129 +1,24 @@
 import { Chart } from 'chart.js';
-import { barChartColors } from '../../../shared/constants';
+import { createGenericBarChart, resetChart } from '../../../shared/charts/bar-chart';
+import type { ChartState } from '../../../shared/charts/bar-chart';
+
 import type { DocumentType } from '../../../shared/types';
 
-let savedBarChart: Chart | null = null;
-let savedBarChartDatasetData: number[] | null = null;
-let savedBarChartLabels: string[] | null = null;
+let documentTypeChartState: ChartState | null = null;
 
-export function createBarChart(
+export function createDocumentTypeBarChart(
     barChartCtx: HTMLCanvasElement,
-    documentTypes: DocumentType[],
-    documentCounts: number[],
+    documentTypes: DocumentType[]
 ): { barChart: Chart } {
-    const barChart = new Chart(barChartCtx, {
-        type: 'bar',
-        data: {
-            labels: documentTypes.map((documentType) => documentType.name),
-            datasets: [
-                {
-                    label: 'Number of Items',
-                    data: [...documentCounts],
-                    backgroundColor: documentCounts.map(
-                        (_, i) => barChartColors[i % barChartColors.length],
-                    ),
-                    borderColor: documentCounts.map(
-                        (_, i) => barChartColors[i % barChartColors.length],
-                    ),
-                    borderWidth: 1,
-                },
-            ],
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    display: true,
-                    position: 'top',
-                    labels: {
-                        color: 'white',
-                        boxWidth: 0,
-                    },
-                    onClick: () => { },
-                },
-                title: {
-                    display: false,
-                },
-            },
-            onClick: (event) => {
-                if (!event.native) return;
+    const labels = documentTypes.map(documentType => documentType.name);
+    const data = documentTypes.map(documentType => documentType.count);
 
-                const nativeEvent = event.native as MouseEvent;
-                const rect = barChart.canvas.getBoundingClientRect();
-                const x = nativeEvent.clientX - rect.left;
-                let closestIndex = 0;
-                let minDistance = Infinity;
+    documentTypeChartState = createGenericBarChart(barChartCtx, labels, data);
 
-                const xScale = barChart.scales['x'];
-                if (!xScale) return;
-
-                const data = barChart.data.datasets[0].data;
-
-                data.forEach((_, i) => {
-                    const dataPosition = xScale.getPixelForValue(i);
-
-                    const distance = Math.abs(x - dataPosition);
-                    if (distance < minDistance) {
-                        minDistance = distance;
-                        closestIndex = i;
-                    }
-                });
-
-                data.splice(closestIndex, 1);
-
-                const chartDataLabels = barChart.data.labels;
-
-                if (chartDataLabels) {
-                    if (!savedBarChartLabels) {
-                        savedBarChartLabels = [...chartDataLabels];
-                    }
-
-                    chartDataLabels.splice(closestIndex, 1);
-                }
-
-                barChart.update();
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        color: 'white',
-                        precision: 0,
-                        stepSize: 1,
-                    },
-                    grid: {
-                        color: 'rgba(255, 255, 255, 0.1)',
-                    },
-                },
-                x: {
-                    ticks: {
-                        color: 'white',
-                    },
-                    grid: {
-                        color: 'rgba(255, 255, 255, 0.1)',
-                    },
-                },
-            },
-        },
-    });
-
-    if (!savedBarChartDatasetData) {
-        savedBarChartDatasetData = [...barChart.data.datasets[0].data];
-    }
-
-    if (!savedBarChartLabels && barChart.data.labels) {
-        savedBarChartLabels = [...barChart.data.labels];
-    }
-
-    savedBarChart = barChart;
-
-    return { barChart };
+    return { barChart: documentTypeChartState.chart };
 }
 
-export function resetBarChart(): void {
-    if (!savedBarChart || !savedBarChartLabels || !savedBarChartDatasetData) return;
-
-    savedBarChart.data.labels = [...savedBarChartLabels];
-    savedBarChart.data.datasets[0].data = [...savedBarChartDatasetData];
-    savedBarChart.update();
+export function resetDocumentTypeBarChart(): void {
+    if (!documentTypeChartState) return;
+    resetChart(documentTypeChartState);
 }

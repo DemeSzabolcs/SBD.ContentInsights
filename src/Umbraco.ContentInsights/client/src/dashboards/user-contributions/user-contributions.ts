@@ -14,20 +14,18 @@ import type { DocumentType } from '../../shared/types';
 import { DocumentsWithAuthors } from '../../shared/types';
 
 // Shared utilities, constants.
-import { createDocumentTypeBarChart, resetDocumentTypeBarChart } from './charts/bar-chart';
-import { createPieChart, updatePieChart } from './charts/pie-chart';
+import { createAuthorBarChart, resetAuthorBarChart, updateAuthorBarChart } from './charts/bar-chart';
 import { renderDocumentsTable, onSort, onPageChange, filterDocumentTypes } from '../../shared/render/documents-table';
 import type { DocumentsTableState } from '../../shared/render/documents-table';
 import { renderDashboardError } from '../../shared/render/error';
-import { buildDocumentTypeSelectOptions, groupDocumentsByStatus, onItemsPerPageChange } from '../../shared/utils';
-
+import { buildDocumentTypeSelectOptions, onItemsPerPageChange } from '../../shared/utils';
 
 // Styles.
 import { generalStyles } from '../../styles/general.styles';
 
 Chart.register(...registerables);
 
-@customElement('content-overview')
+@customElement('user-contributions')
 export class ContentOverview extends UmbLitElement {
     @state() private documentsTableState: DocumentsTableState = {
         documentsWithAuthors: new DocumentsWithAuthors(),
@@ -39,62 +37,45 @@ export class ContentOverview extends UmbLitElement {
 
     @state() private documentTypeSelectOptions: Option[] = [];
     @state() private hasError: boolean = false;
-    @state() private documentCount: number = 0;
 
     private handleDocumentTypeSelectChange(event: Event) {
         const select = event.target as HTMLSelectElement;
         const selectValue = select.value;
-        updatePieChart(selectValue);
         filterDocumentTypes(selectValue, this.documentsTableState);
+        updateAuthorBarChart(selectValue);
         this.documentsTableState.currentPage = 1;
-
-        if (selectValue === "all") {
-            this.documentCount = this.documentsTableState.documentsWithAuthors.documents.length;
-        } else {
-            this.documentCount = this.documentsTableState.documentsWithAuthors.documents
-                .filter(document => document.type === selectValue)
-                .length;
-        }
-
         this.requestUpdate();
     }
 
     render() {
         if (this.hasError) {
-            if (this.hasError) {
-                renderDashboardError();
-            }
+            renderDashboardError();
         }
 
         return html`
     <uui-box class="dashboard">
         <div class="dashboard-flex">
-            <div class="dashboard-section-flex">
+            <div class="dashboard-section">
                 <div class="section-header">
-                    <uui-icon name="icon-bar-chart" class="uii-icon"></uui-icon>
-                    <h2>Document count by Document Types</h2>
+                    <uui-icon name="icon-users" class="uii-icon"></uui-icon>
+                    <h2>Document count by Users</h2>
+                </div>
+                <div>
+                    <p>
+                    In case of public and trashed documents, the user is the person who last published the document.
+                    </br>
+                    In case of draft documents, the user is the person who last edited the document.
+                    </p>
                 </div>
                 <div class="reset-button">
                     <p>Click on the bars to remove them, click on reset to reset the chart.</p>
-                    <uui-button type="button" look="primary" color="danger" label="Reset" @click=${resetDocumentTypeBarChart}></uui-button>
+                    <uui-button type="button" look="primary" color="danger" label="Reset" @click=${resetAuthorBarChart}></uui-button>
+                </div>
+                <div class="select-container">
+                    <uui-select class="document-type-select" id="documentTypeSelect" label="documentTypeSelect" .options=${this.documentTypeSelectOptions} @change=${this.handleDocumentTypeSelectChange}></uui-select>
                 </div>
                 <uui-box class="chart-box bar-chart">
                     <canvas id="contentByDocumentTypeChart"></canvas>
-                </uui-box>
-            </div>
-            <div class="dashboard-section-flex">
-                <div class="section-header">
-                    <uui-icon name="icon-pie-chart" class="uii-icon"></uui-icon>
-                    <h2>Document count by Document Status</h2>
-                </div>
-                <div class="select-container">
-                     <uui-icon name="icon-calculator" class="uii-icon"></uui-icon>
-                     <h3 class="document-count">Document count: </h3>
-                     <uui-tag class="uii-icon">${this.documentCount}</uui-tag>
-                    <uui-select class="document-type-select" id="documentTypeSelect" label="documentTypeSelect" .options=${this.documentTypeSelectOptions} @change=${this.handleDocumentTypeSelectChange}></uui-select>
-                </div>
-                <uui-box class="chart-box pie-chart">
-                    <canvas id="contentByDocumentStatusChart"></canvas>
                 </uui-box>
             </div>
         </div>
@@ -109,6 +90,18 @@ export class ContentOverview extends UmbLitElement {
     }
 
     async firstUpdated() {
+
+        const getDocumentsWithAuthorsResponse = await tryExecute(this, umbHttpClient.get<DocumentsWithAuthors>({
+            url: umbracoPath("/content-insights/get-all-documents-with-authors"),
+        }));
+
+        const documentsWithAuthorsData = getDocumentsWithAuthorsResponse.data;
+
+        if (!documentsWithAuthorsData?.documents || !documentsWithAuthorsData?.authors) {
+            this.hasError = true;
+            return;
+        }
+
         const getContentTypesResponse = await tryExecute(this, umbHttpClient.get<DocumentType[]>({
             url: umbracoPath("/content-insights/get-document-types"),
         }));
@@ -123,30 +116,12 @@ export class ContentOverview extends UmbLitElement {
         this.documentTypeSelectOptions = buildDocumentTypeSelectOptions(documentTypes);
 
         const barChartCtx = this.renderRoot.querySelector('#contentByDocumentTypeChart') as HTMLCanvasElement;
-        createDocumentTypeBarChart(barChartCtx, documentTypes);
-
-        const getDocumentsWithAuthorsResponse = await tryExecute(this, umbHttpClient.get<DocumentsWithAuthors>({
-            url: umbracoPath("/content-insights/get-all-documents-with-authors"),
-        }));
-
-        const documentsWithAuthorsData = getDocumentsWithAuthorsResponse.data;
-
-        if (!documentsWithAuthorsData?.documents || !documentsWithAuthorsData?.authors) {
-            this.hasError = true;
-            return;
-        }
+        createAuthorBarChart(barChartCtx, documentsWithAuthorsData);
 
         this.documentsTableState = {
             ...this.documentsTableState,
             documentsWithAuthors: documentsWithAuthorsData
         };
-
-        this.documentCount = documentsWithAuthorsData.documents.length;
-
-        const documentsByStatus = groupDocumentsByStatus(documentsWithAuthorsData.documents);
-
-        const pieChartCtx = this.renderRoot.querySelector('#contentByDocumentStatusChart') as HTMLCanvasElement;
-        createPieChart(pieChartCtx, documentsByStatus);
     }
 
     static styles = generalStyles;
@@ -154,6 +129,6 @@ export class ContentOverview extends UmbLitElement {
 
 declare global {
     interface HTMLElementTagNameMap {
-        'content-overview': ContentOverview
+        'user-contributions': ContentOverview
     }
 }

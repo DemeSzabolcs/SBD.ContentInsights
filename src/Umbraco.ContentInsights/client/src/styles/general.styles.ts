@@ -1,6 +1,9 @@
 import { css } from 'lit';
+import { documentsTableStyles } from './documents-table.styles';
 
-export const contentOverviewStyles = css`
+export const generalStyles = [
+    documentsTableStyles,
+    css`
   :host {
     display: block;
     margin: 0 auto;
@@ -10,7 +13,8 @@ export const contentOverviewStyles = css`
     padding: 24px;
     border-radius: 6px;
     margin-top: 40px;
-    max-width: 85vw;
+    width: 85vw;
+    max-width: 1300px;
     margin: auto;
   }
 
@@ -102,33 +106,12 @@ export const contentOverviewStyles = css`
     padding-right: 10px;
   }
 
-  .content-table > table {
-    width: 100%;
-    padding-bottom: 40px;
+  .uii-icon{
+      font-size: 30px;
   }
 
-  .content-table > table > thead {
-    vertical-align: baseline;
+  .document-count{
+      padding-right: 10px;
   }
-
-  .content-table-header {
-    text-align: left;
-  }
-
-  .content-table-header > th {
-    padding-bottom: 10px;
-  }
-
-  .content-table-header > th:nth-child(1),
-  .content-table-header > th:nth-child(4) {
-    width: 13%;
-  }
-
-  .content-table-header > th:nth-child(2) {
-    width: 40%;
-  }
-
-  .content-table-header > th:nth-child(3) {
-    width: 34%;
-  }
-`;
+`,
+];

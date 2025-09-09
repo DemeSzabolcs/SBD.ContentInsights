@@ -4,6 +4,18 @@ export type DocumentType = {
     count: number;
 };
 
+export type UserGroup = {
+    name: string;
+    key: string;
+};
+
+
+export class DocumentsByStatus {
+    public: UmbracoDocument[] = [];
+    draft: UmbracoDocument[] = [];
+    trashed: UmbracoDocument[] = [];
+}
+
 export enum DocumentStatus {
     Public,
     Draft,
@@ -16,13 +28,18 @@ export type UmbracoDocument = {
     link: string;
     type: string;
     typeName: string;
+    authorKey: string;
 }
 
-export class DocumentsByStatus {
-    public: UmbracoDocument[] = [];
-    draft: UmbracoDocument[] = [];
-    trashed: UmbracoDocument[] = [];
-    publicCount: number = 0;
-    draftCount: number = 0;
-    trashedCount: number = 0;
+
+export class Author {
+    name: string = '';
+    email: string = '';
+    link: string = '';
+    userGroups: UserGroup[] = [];
+}
+
+export class DocumentsWithAuthors {
+    documents: UmbracoDocument[] = [];
+    authors: Author[] = [];
 }

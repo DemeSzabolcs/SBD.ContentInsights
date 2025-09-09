@@ -21,9 +21,9 @@ export const dashboardsManifest: UmbExtensionManifest[] = [
         type: 'dashboard',
         alias: 'Umbraco.ContentInsights.Dashboards.UserContributions',
         name: 'User Contributions',
-        elementName: 'content-overview',
+        elementName: 'user-contributions',
         element: () =>
-            import('./content-overview/content-overview').then((m) => ({ default: m.ContentOverview })),
+            import('./user-contributions/user-contributions').then((m) => ({ default: m.ContentOverview })),
         meta: {
             label: 'User Contributions',
             pathname: 'user-contributions',
