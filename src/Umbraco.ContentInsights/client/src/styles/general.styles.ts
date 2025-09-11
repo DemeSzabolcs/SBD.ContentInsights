@@ -110,6 +110,11 @@ export const generalStyles = [
       font-size: 30px;
   }
 
+  .uii-icon-warning{
+      color: #f59e0b;
+      font-size: 30px;
+  }
+
   .document-count{
       padding-right: 10px;
   }

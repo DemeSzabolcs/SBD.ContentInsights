@@ -54,7 +54,7 @@ export class ContentOverview extends UmbLitElement {
 
         return html`
     <uui-box class="dashboard">
-        <div class="dashboard-flex">
+        <div>
             <div class="dashboard-section">
                 <div class="section-header">
                     <uui-icon name="icon-time" class="uii-icon"></uui-icon>
@@ -62,7 +62,7 @@ export class ContentOverview extends UmbLitElement {
                 </div>
                  <div>
                     <p>
-                    Trashed documents (documents in the recyclebin) are not counted.
+                        Trashed documents (documents in the recyclebin) are not counted.
                     </p>
                 </div>
                 <div class="select-container">
@@ -71,6 +71,18 @@ export class ContentOverview extends UmbLitElement {
                 <uui-box class="chart-box bar-chart">
                     <canvas id="documentAgeDistributionChart"></canvas>
                 </uui-box>
+            </div>
+        <div>
+            <div class="dashboard-section">
+                <div class="section-header">
+                    <uui-icon name="icon-alert" class="uii-icon-warning"></uui-icon>
+                    <h2>Drafts Requiring Attention</h2>
+                </div>
+                 <div>
+                    <p>
+                        Drafts older than 30 days: 1
+                    </p>
+                </div>
             </div>
         </div>
       ${renderDocumentsTable(

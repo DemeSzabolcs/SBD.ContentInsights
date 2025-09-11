@@ -17,6 +17,7 @@ export const documentsTableStyles = css`
 
   .document-table-header > th {
     padding-bottom: 10px;
+    white-space: nowrap;
   }
 
   .document-table-header > th:nth-child(1),
