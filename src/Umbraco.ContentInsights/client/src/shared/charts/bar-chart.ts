@@ -12,6 +12,7 @@ export function createGenericBarChart(
     labels: string[],
     data: number[],
     onClickCallback?: (barChart: Chart, index: number) => void,
+    removeOnClick: boolean = true,
 ): ChartState  {
     const barChart = new Chart(barChartCtx, {
         type: 'bar',
@@ -39,7 +40,7 @@ export function createGenericBarChart(
                 title: { display: false },
             },
             onClick: (event) => {
-                if (!event.native) return;
+                if (!event.native || !removeOnClick) return;
 
                 const nativeEvent = event.native as MouseEvent;
                 const rect = barChart.canvas.getBoundingClientRect();

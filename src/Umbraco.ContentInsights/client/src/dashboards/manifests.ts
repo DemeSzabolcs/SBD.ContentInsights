@@ -39,9 +39,9 @@ export const dashboardsManifest: UmbExtensionManifest[] = [
         type: 'dashboard',
         alias: 'Umbraco.ContentInsights.Dashboards.ContentQualityAndLifecycle',
         name: 'Content Quality & Lifecycle',
-        elementName: 'content-overview',
+        elementName: 'content-quality-and-lifecycle',
         element: () =>
-            import('./content-overview/content-overview').then((m) => ({ default: m.ContentOverview })),
+            import('./content-quality-and-lifecycle/content-quality-and-lifecycle').then((m) => ({ default: m.ContentOverview })),
         meta: {
             label: 'Content Quality & Lifecycle',
             pathname: 'content-quality-and-lifecycle',

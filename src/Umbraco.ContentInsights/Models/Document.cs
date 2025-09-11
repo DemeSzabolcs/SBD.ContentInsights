@@ -15,6 +15,8 @@ public class Document
 
     public string AuthorKey { get; set; }
 
+    public DateTime UpdateDate { get; set; }
+
     public Document(IContent content, string authorKey)
     {
         ArgumentNullException.ThrowIfNull(content);
@@ -32,5 +34,6 @@ public class Document
         Type = content.ContentType.Alias;
         TypeName = content.ContentType.Name ?? string.Empty;
         AuthorKey = authorKey;
+        UpdateDate = content.UpdateDate;
     }
 }

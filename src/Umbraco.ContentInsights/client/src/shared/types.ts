@@ -29,6 +29,7 @@ export type UmbracoDocument = {
     type: string;
     typeName: string;
     authorKey: string;
+    updateDate: Date;
 }
 
 
