@@ -37,6 +37,12 @@ export class ContentOverview extends UmbLitElement {
 
     @state() private documentTypeSelectOptions: Option[] = [];
     @state() private hasError: boolean = false;
+    @state() private draftDocumentCountInTimeRange: number = 0;
+    @state() private draftsOlderThanDays: number = 30;
+    @state() private warningMessage: HTMLParagraphElement | null = null;
+    @state() private draftSlider: HTMLInputElement | null = null;
+    @state() private draftInput: HTMLInputElement | null = null;
+
 
     private handleDocumentTypeSelectChange(event: Event) {
         const select = event.target as HTMLSelectElement;
@@ -45,6 +51,42 @@ export class ContentOverview extends UmbLitElement {
         updateDocumentAgeDistributionChart(selectValue);
         this.documentsTableState.currentPage = 1;
         this.requestUpdate();
+    }
+
+    private handleDraftsOldarThanInputChange(event: Event) {
+        const input = event.target as HTMLInputElement;
+        const value = Number(input.value);
+
+        if (!this.warningMessage) {
+            this.warningMessage = this.renderRoot.querySelector<HTMLParagraphElement>('#draftsOlderThanWarning');
+        }
+
+        if (this.warningMessage) {
+            if (value < 1 || value > 365) {
+                this.warningMessage.style.visibility = 'visible';
+            } else {
+                this.warningMessage.style.visibility = 'hidden';
+                this.draftsOlderThanDays = value;
+
+                if (this.draftSlider) {
+                    this.draftSlider.value = String(value);
+                }
+            }
+        }
+    }
+
+    private handleDraftsOldarThanSliderChange(event: Event) {
+        const input = event.target as HTMLInputElement;
+        const value = Number(input.value);
+        this.draftsOlderThanDays = value
+
+        if (this.warningMessage) {
+            this.warningMessage.style.visibility = 'hidden';
+        }
+
+        if (this.draftInput) {
+            this.draftInput.value = String(value);
+        }
     }
 
     render() {
@@ -78,10 +120,16 @@ export class ContentOverview extends UmbLitElement {
                     <uui-icon name="icon-alert" class="uii-icon-warning"></uui-icon>
                     <h2>Drafts Requiring Attention</h2>
                 </div>
-                 <div>
-                    <p>
-                        Drafts older than 30 days: 1
+                <div>
+                    <p id="draftsOlderThanWarning" class="warning-message">Value must be between 1 and 365!</p>
+                </div>
+                 <div class="drafts-requiring-attention-container">
+                    <p class="drafts-older-than-days-days">
+                        Drafts older than ${this.draftsOlderThanDays} days:
                     </p>
+                    <h3 class="warning drafts-older-than-days-count">${this.draftDocumentCountInTimeRange}</h3>
+                    <uui-slider id="draftsOlderThanSlider" min="1" max="365" step="1" label="Slider label" value="1" @input=${this.handleDraftsOldarThanSliderChange}></uui-slider>
+                    <uui-input id="draftsOlderThanInput" label="Label" placeholder="30" type="number" inputmode="numeric" min="1" max="365" value="30" @change=${this.handleDraftsOldarThanInputChange}></uui-input>
                 </div>
             </div>
         </div>
@@ -96,7 +144,6 @@ export class ContentOverview extends UmbLitElement {
     }
 
     async firstUpdated() {
-
         const getDocumentsWithAuthorsResponse = await tryExecute(this, umbHttpClient.get<DocumentsWithAuthors>({
             url: umbracoPath("/content-insights/get-all-documents-with-authors"),
         }));
@@ -118,6 +165,9 @@ export class ContentOverview extends UmbLitElement {
             this.hasError = true;
             return;
         }
+
+        this.draftSlider = this.renderRoot.querySelector<HTMLInputElement>('#draftsOlderThanSlider');
+        this.draftInput = this.renderRoot.querySelector<HTMLInputElement>('#draftsOlderThanInput');
 
         this.documentTypeSelectOptions = buildDocumentTypeSelectOptions(documentTypes);
 
