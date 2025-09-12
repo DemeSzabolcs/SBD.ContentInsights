@@ -3,7 +3,8 @@ import { createGenericBarChart } from '../../../shared/charts/bar-chart';
 import type { ChartState } from '../../../shared/charts/bar-chart';
 
 import type { UmbracoDocument } from '../../../shared/types';
-import { convertDocumentStatusToNumberString } from '../../../shared/utils';
+import { convertDocumentStatusToNumberString, getDocumentAgeInDays } from '../../../shared/utils';
+import { documentStatusOrder } from '../../../shared/constants';
 
 const AgeBuckets = [
     { label: "0–7 days", from: 0, to: 7 },
@@ -21,20 +22,16 @@ function bucketDocumentsByAge(
     documents: UmbracoDocument[],
     typeFilter?: string
 ): number[] {
-    const now = new Date();
     let filteredDocuments = typeFilter
         ? documents.filter(document => document.type === typeFilter)
         : documents;
 
     filteredDocuments = filteredDocuments
-        .filter(document => convertDocumentStatusToNumberString(document.status) !== "2")
+        .filter(document => convertDocumentStatusToNumberString(document.status) !== documentStatusOrder.Draft)
 
     return AgeBuckets.map(bucket => {
         return filteredDocuments.filter(document => {
-            const updated = new Date(document.updateDate);
-            const ageInDays = Math.floor(
-                (now.getTime() - updated.getTime()) / (1000 * 60 * 60 * 24)
-            );
+            const ageInDays = getDocumentAgeInDays(document)
             return ageInDays >= bucket.from && ageInDays <= bucket.to;
         }).length;
     });

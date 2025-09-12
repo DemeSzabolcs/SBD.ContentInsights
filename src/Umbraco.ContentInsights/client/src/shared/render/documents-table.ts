@@ -1,7 +1,8 @@
 import { html } from 'lit';
 import type { UmbracoDocument, DocumentsWithAuthors } from '../../shared/types';
-import { convertDocumentStatusToNumberString, getTagColor, getAuthorNameByKey, getAuthorLinkFromKey } from '../../shared/utils';
+import { convertDocumentStatusToNumberString, getTagColor, getAuthorNameByKey, getAuthorLinkFromKey, getDocumentAgeInDays } from '../../shared/utils';
 import type { UUIPaginationElement } from '@umbraco-cms/backoffice/external/uui';
+import { documentStatusOrder } from '../constants';
 
 let savedDocuments: UmbracoDocument[] | null = null;
 
@@ -9,12 +10,13 @@ export type SortColumn = 'status' | 'name' | 'type' | 'date' | 'author' | null;
 
 export interface DocumentsTableState {
     documentsWithAuthors: DocumentsWithAuthors;
+    filteredDocumentCount: number;
     currentPage: number;
     itemsPerPage: number;
     sortColumn: SortColumn;
     sortDescending: boolean;
 }
-export function filterDocumentTypes(selectValue: string, state: DocumentsTableState): void {
+export function filterDocumentTypes(selectValue: string, state: DocumentsTableState, draftOnly: boolean = false, olderThanDays?: number): void {
     if (!savedDocuments) {
         if (state.documentsWithAuthors.documents) {
             savedDocuments = [...state.documentsWithAuthors.documents];
@@ -23,11 +25,25 @@ export function filterDocumentTypes(selectValue: string, state: DocumentsTableSt
         }
     }
 
-    if (selectValue === "all") {
-        state.documentsWithAuthors.documents = [...savedDocuments];
-    } else {
-        state.documentsWithAuthors.documents = [...savedDocuments.filter(document => document.type === selectValue)];
+    let filteredDocuments = [...savedDocuments];
+
+    if (selectValue !== "all") {
+        filteredDocuments = filteredDocuments.filter(document => document.type === selectValue);
     }
+
+    if (draftOnly) {
+        filteredDocuments = filteredDocuments
+            .filter(document => convertDocumentStatusToNumberString(document.status) === documentStatusOrder.Draft);
+    }
+
+    if (olderThanDays) {
+        filteredDocuments = filteredDocuments
+            .filter(document => getDocumentAgeInDays(document) >= olderThanDays);
+    }
+
+    state.documentsWithAuthors.documents = [...filteredDocuments];
+    state.filteredDocumentCount = filteredDocuments.length;
+
 }
 
 export function getTotalPages(state: DocumentsTableState): number {

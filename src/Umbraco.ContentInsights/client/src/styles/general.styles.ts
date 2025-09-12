@@ -59,7 +59,7 @@ export const generalStyles = [
   }
 
   .drafts-older-than-days-days{
-      width: 200px;
+      width: 240px;
   }
 
     .drafts-older-than-days-count{

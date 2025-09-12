@@ -1,3 +1,4 @@
+import { documentStatusOrder } from "./constants";
 import type { DocumentsTableState } from "./render/documents-table";
 import { DocumentStatus, Author, DocumentsByStatus } from "./types";
 import type { UmbracoDocument, DocumentsWithAuthors, DocumentType } from "./types";
@@ -5,13 +6,13 @@ import type { UmbracoDocument, DocumentsWithAuthors, DocumentType } from "./type
 export const convertDocumentStatusToNumberString = (documentStatus: DocumentStatus): string => {
     switch (documentStatus as unknown as string) {
         case DocumentStatus[DocumentStatus.Public]:
-            return "0";
+            return documentStatusOrder.Public;
         case DocumentStatus[DocumentStatus.Draft]:
-            return "1";
+            return documentStatusOrder.Draft;
         case DocumentStatus[DocumentStatus.Trashed]:
-            return "2";
+            return documentStatusOrder.Trashed;
         default:
-            return "0";
+            return documentStatusOrder.Public;
     }
 }
 
@@ -43,13 +44,13 @@ export function getAuthorLinkFromKey(authorKey: string): string {
 export function groupDocumentsByStatus(documents: UmbracoDocument[]): DocumentsByStatus {
     return {
         public: documents.filter(
-            (document) => convertDocumentStatusToNumberString(document.status) === "0"
+            (document) => convertDocumentStatusToNumberString(document.status) === documentStatusOrder.Public
         ),
         draft: documents.filter(
-            (document) => convertDocumentStatusToNumberString(document.status) === "1"
+            (document) => convertDocumentStatusToNumberString(document.status) === documentStatusOrder.Draft
         ),
         trashed: documents.filter(
-            (document) => convertDocumentStatusToNumberString(document.status) === "2"
+            (document) => convertDocumentStatusToNumberString(document.status) === documentStatusOrder.Trashed
         ),
     };
 }
@@ -89,4 +90,14 @@ export function onItemsPerPageChange(
         ...state,
         itemsPerPage: selectValue,
     };
+}
+
+export function getDocumentAgeInDays(
+    document: UmbracoDocument,
+): number {
+    const now = new Date();
+    const updated = new Date(document.updateDate);
+    return Math.floor(
+        (now.getTime() - updated.getTime()) / (1000 * 60 * 60 * 24)
+    );
 }

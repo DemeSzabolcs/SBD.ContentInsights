@@ -29,6 +29,7 @@ Chart.register(...registerables);
 export class ContentOverview extends UmbLitElement {
     @state() private documentsTableState: DocumentsTableState = {
         documentsWithAuthors: new DocumentsWithAuthors(),
+        filteredDocumentCount: 0,
         currentPage: 1,
         itemsPerPage: 10,
         sortColumn: null,
@@ -42,16 +43,30 @@ export class ContentOverview extends UmbLitElement {
     @state() private warningMessage: HTMLParagraphElement | null = null;
     @state() private draftSlider: HTMLInputElement | null = null;
     @state() private draftInput: HTMLInputElement | null = null;
+    @state() private selectValue: string = "all";
+    @state() private selectName: string = "All Document Types";
+    @state() private draftOnly: boolean = true;
+    @state() private draftsOlderThanDaysText: string = "Drafts";
 
+    private handleAnyInputChange() {
+        filterDocumentTypes(this.selectValue, this.documentsTableState, this.draftOnly, this.draftsOlderThanDays);
+        this.draftDocumentCountInTimeRange = this.documentsTableState.filteredDocumentCount;
+
+
+    }
 
     private handleDocumentTypeSelectChange(event: Event) {
         const select = event.target as HTMLSelectElement;
         const selectValue = select.value;
-        filterDocumentTypes(selectValue, this.documentsTableState);
+        this.selectValue = selectValue;
+        this.selectName = this.documentTypeSelectOptions.find(option => option.value === selectValue)?.name ?? "All Document Types";
+
+        this.handleAnyInputChange();
         updateDocumentAgeDistributionChart(selectValue);
         this.documentsTableState.currentPage = 1;
         this.requestUpdate();
     }
+
 
     private handleDraftsOldarThanInputChange(event: Event) {
         const input = event.target as HTMLInputElement;
@@ -67,6 +82,8 @@ export class ContentOverview extends UmbLitElement {
             } else {
                 this.warningMessage.style.visibility = 'hidden';
                 this.draftsOlderThanDays = value;
+
+                this.handleAnyInputChange();
 
                 if (this.draftSlider) {
                     this.draftSlider.value = String(value);
@@ -87,6 +104,25 @@ export class ContentOverview extends UmbLitElement {
         if (this.draftInput) {
             this.draftInput.value = String(value);
         }
+        this.handleAnyInputChange();
+    }
+
+    private handleListAllDocumentsChange(event: Event) {
+        const input = event.target as HTMLInputElement;
+        const value = Boolean(input.checked);
+
+        this.draftOnly = !value;
+
+        this.handleAnyInputChange();
+
+        if (value) {
+            this.draftsOlderThanDaysText = "All Documents";
+        }
+        else {
+            this.draftsOlderThanDaysText = "Drafts";
+        }
+
+        this.requestUpdate();
     }
 
     render() {
@@ -118,19 +154,21 @@ export class ContentOverview extends UmbLitElement {
             <div class="dashboard-section">
                 <div class="section-header">
                     <uui-icon name="icon-alert" class="uii-icon-warning"></uui-icon>
-                    <h2>Drafts Requiring Attention</h2>
+                    <h2>${this.draftsOlderThanDaysText} Requiring Attention</h2>
                 </div>
                 <div>
                     <p id="draftsOlderThanWarning" class="warning-message">Value must be between 1 and 365!</p>
                 </div>
                  <div class="drafts-requiring-attention-container">
                     <p class="drafts-older-than-days-days">
-                        Drafts older than ${this.draftsOlderThanDays} days:
+                        ${this.draftsOlderThanDaysText} older than ${this.draftsOlderThanDays} days:
                     </p>
                     <h3 class="warning drafts-older-than-days-count">${this.draftDocumentCountInTimeRange}</h3>
-                    <uui-slider id="draftsOlderThanSlider" min="1" max="365" step="1" label="Slider label" value="1" @input=${this.handleDraftsOldarThanSliderChange}></uui-slider>
+                    <uui-slider id="draftsOlderThanSlider" min="1" max="365" step="1" label="Slider label" value="30" @input=${this.handleDraftsOldarThanSliderChange}></uui-slider>
                     <uui-input id="draftsOlderThanInput" label="Label" placeholder="30" type="number" inputmode="numeric" min="1" max="365" value="30" @change=${this.handleDraftsOldarThanInputChange}></uui-input>
                 </div>
+                  <uui-toggle label="List all documents anyway" @change=${this.handleListAllDocumentsChange}></uui-toggle>
+                  <p> Filtering for: ${this.selectName}
             </div>
         </div>
       ${renderDocumentsTable(
@@ -178,6 +216,11 @@ export class ContentOverview extends UmbLitElement {
             ...this.documentsTableState,
             documentsWithAuthors: documentsWithAuthorsData
         };
+
+        filterDocumentTypes(this.selectValue, this.documentsTableState, this.draftOnly, this.draftsOlderThanDays);
+        this.draftDocumentCountInTimeRange = this.documentsTableState.filteredDocumentCount;
+
+        this.requestUpdate();
     }
 
     static styles = generalStyles;
