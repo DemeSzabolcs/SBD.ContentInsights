@@ -1,20 +1,22 @@
 import { html } from 'lit';
 import type { UmbracoDocument, DocumentsWithAuthors } from '../../shared/types';
-import { convertDocumentStatusToNumberString, getTagColor, getAuthorNameByKey, getAuthorLinkFromKey } from '../../shared/utils';
+import { convertDocumentStatusToNumberString, getTagColor, getAuthorNameByKey, getAuthorLinkFromKey, getDocumentAgeInDays } from '../../shared/utils';
 import type { UUIPaginationElement } from '@umbraco-cms/backoffice/external/uui';
+import { documentStatusOrder } from '../constants';
 
 let savedDocuments: UmbracoDocument[] | null = null;
 
-export type SortColumn = 'status' | 'name' | 'type' | 'author' | null;
+export type SortColumn = 'status' | 'name' | 'type' | 'date' | 'author' | null;
 
 export interface DocumentsTableState {
     documentsWithAuthors: DocumentsWithAuthors;
+    filteredDocumentCount: number;
     currentPage: number;
     itemsPerPage: number;
     sortColumn: SortColumn;
     sortDescending: boolean;
 }
-export function filterDocumentTypes(selectValue: string, state: DocumentsTableState): void {
+export function filterDocumentTypes(selectValue: string, state: DocumentsTableState, draftOnly: boolean = false, olderThanDays?: number): void {
     if (!savedDocuments) {
         if (state.documentsWithAuthors.documents) {
             savedDocuments = [...state.documentsWithAuthors.documents];
@@ -23,11 +25,25 @@ export function filterDocumentTypes(selectValue: string, state: DocumentsTableSt
         }
     }
 
-    if (selectValue === "all") {
-        state.documentsWithAuthors.documents = [...savedDocuments];
-    } else {
-        state.documentsWithAuthors.documents = [...savedDocuments.filter(document => document.type === selectValue)];
+    let filteredDocuments = [...savedDocuments];
+
+    if (selectValue !== "all") {
+        filteredDocuments = filteredDocuments.filter(document => document.type === selectValue);
     }
+
+    if (draftOnly) {
+        filteredDocuments = filteredDocuments
+            .filter(document => convertDocumentStatusToNumberString(document.status) === documentStatusOrder.Draft);
+    }
+
+    if (olderThanDays) {
+        filteredDocuments = filteredDocuments
+            .filter(document => getDocumentAgeInDays(document) >= olderThanDays);
+    }
+
+    state.documentsWithAuthors.documents = [...filteredDocuments];
+    state.filteredDocumentCount = filteredDocuments.length;
+
 }
 
 export function getTotalPages(state: DocumentsTableState): number {
@@ -46,7 +62,7 @@ export function onPageChange(
 
 export function onSort(
     state: DocumentsTableState,
-    column: 'status' | 'name' | 'type' | 'author'
+    column: 'status' | 'name' | 'type' | 'date' | 'author'
 ): DocumentsTableState {
     if (state.sortColumn === column) {
         return { ...state, sortDescending: !state.sortDescending };
@@ -57,7 +73,7 @@ export function onSort(
 export function getSortedDocuments(state: DocumentsTableState): UmbracoDocument[] {
     let docs = [...state.documentsWithAuthors.documents];
     if (!state.sortColumn) return docs;
-
+    let result = null as any;
     docs.sort((a, b) => {
         let aValue = '';
         let bValue = '';
@@ -79,9 +95,14 @@ export function getSortedDocuments(state: DocumentsTableState): UmbracoDocument[
                 aValue = getAuthorNameByKey(a.authorKey, state.documentsWithAuthors.authors);
                 bValue = getAuthorNameByKey(b.authorKey, state.documentsWithAuthors.authors);
                 break;
+            case 'date':
+                result = new Date(a.updateDate).getTime() - new Date(b.updateDate).getTime();
+                break;
         }
 
-        const result = aValue.localeCompare(bValue, undefined, { numeric: true });
+        if (!result) { 
+            result = aValue.localeCompare(bValue, undefined, { numeric: true });
+        }
         return state.sortDescending ? -result : result;
     });
 
@@ -96,7 +117,7 @@ export function getPaginatedItems(state: DocumentsTableState): UmbracoDocument[]
 
 export function renderDocumentsTable(
     state: DocumentsTableState,
-    onSortClick: (column: 'status' | 'name' | 'type' | 'author') => void,
+    onSortClick: (column: 'status' | 'name' | 'type' | 'date' | 'author') => void,
     onPageChangeHandler: (event: CustomEvent) => void,
     onItemsPerPageChange: (event: Event) => void
 ) {
@@ -148,6 +169,13 @@ export function renderDocumentsTable(
                   .descending=${state.sortDescending && state.sortColumn === 'author'}>
                 </uui-symbol-sort>
               </th>
+              <th @click=${() => onSortClick('date')}>
+                <uui-button type="button" look="outline" color="default" label="Date"></uui-button>
+                <uui-symbol-sort
+                  .active=${state.sortColumn === 'date'}
+                  .descending=${state.sortDescending && state.sortColumn === 'date'}>
+                </uui-symbol-sort>
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -164,6 +192,7 @@ export function renderDocumentsTable(
                   <td>
                     <uui-button look="default" type="button" href="${getAuthorLinkFromKey(item.authorKey)}" target="_blank" label="${getAuthorNameByKey(item.authorKey, state.documentsWithAuthors.authors)}">${getAuthorNameByKey(item.authorKey, state.documentsWithAuthors.authors)} <uui-icon name="icon-link"></uui-icon> </uui-button>
                   </td>
+                  <td>${new Date(item.updateDate).toLocaleDateString()}</td>
                 </tr>
               `
     )}

@@ -83,7 +83,7 @@ public class ContentInsightsController : ManagementApiControllerBase
 
         var orderedDocuments = allDocuments
             .OrderBy(document => document.Status)
-            .ThenBy(document => document.Name)
+            .ThenBy(document => document.UpdateDate)
             .ToList();
 
         var allDocumentsAndAuthors = new DocumentsWithAuthors

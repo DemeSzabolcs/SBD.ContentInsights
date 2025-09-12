@@ -31,6 +31,7 @@ Chart.register(...registerables);
 export class ContentOverview extends UmbLitElement {
     @state() private documentsTableState: DocumentsTableState = {
         documentsWithAuthors: new DocumentsWithAuthors(),
+        filteredDocumentCount: 0,
         currentPage: 1,
         itemsPerPage: 10,
         sortColumn: null,

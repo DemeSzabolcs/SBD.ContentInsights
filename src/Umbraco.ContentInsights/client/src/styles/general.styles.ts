@@ -39,6 +39,33 @@ export const generalStyles = [
     }
   }
 
+  .drafts-requiring-attention-container{
+      display: block;
+  }
+
+    @media (min-width: 768px) {
+    .drafts-requiring-attention-container {
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+    }
+  }
+
+  #draftsOlderThanSlider{
+      width: 33%;
+      margin-top: 25px;
+      margin-left: 20px;
+      margin-right: 20px;
+  }
+
+  .drafts-older-than-days-days{
+      width: 240px;
+  }
+
+    .drafts-older-than-days-count{
+      width: 30px;
+  }
+
   .dashboard-section {
     margin-bottom: 32px;
   }
@@ -108,6 +135,22 @@ export const generalStyles = [
 
   .uii-icon{
       font-size: 30px;
+  }
+
+  .uii-icon-warning{
+      color: #f59e0b;
+      font-size: 30px;
+  }
+
+  .warning{
+      color: #f59e0b;
+  }
+
+  .warning-message{
+      color: #f59e0b;
+      display: flex;
+      visibility: hidden;
+      justify-content: right;
   }
 
   .document-count{
