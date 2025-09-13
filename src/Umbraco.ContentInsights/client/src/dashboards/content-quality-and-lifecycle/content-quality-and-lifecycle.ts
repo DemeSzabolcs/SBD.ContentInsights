@@ -54,8 +54,6 @@ export class ContentOverview extends UmbLitElement {
     private handleAnyInputChange() {
         filterDocumentTypes(this.selectValue, this.documentsTableState, this.draftOnly, this.draftsOlderThanDays);
         this.draftDocumentCountInTimeRange = this.documentsTableState.filteredDocumentCount;
-
-
     }
 
     private handleDocumentTypeSelectChange(event: Event) {

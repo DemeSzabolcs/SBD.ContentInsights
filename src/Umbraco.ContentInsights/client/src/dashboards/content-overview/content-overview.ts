@@ -48,14 +48,7 @@ export class ContentOverview extends UmbLitElement {
         updatePieChart(selectValue);
         filterDocumentTypes(selectValue, this.documentsTableState);
         this.documentsTableState.currentPage = 1;
-
-        if (selectValue === "all") {
-            this.documentCount = this.documentsTableState.documentsWithAuthors.documents.length;
-        } else {
-            this.documentCount = this.documentsTableState.documentsWithAuthors.documents
-                .filter(document => document.type === selectValue)
-                .length;
-        }
+        this.documentCount = this.documentsTableState.filteredDocumentCount;
 
         this.requestUpdate();
     }
@@ -78,7 +71,7 @@ export class ContentOverview extends UmbLitElement {
                     <uui-button type="button" look="primary" color="danger" label="Reset" @click=${resetDocumentTypeBarChart}></uui-button>
                 </div>
                 <uui-box class="chart-box bar-chart">
-                    <canvas id="contentByDocumentTypeChart"></canvas>
+                    <canvas id="documentsByDocumentTypeChart"></canvas>
                 </uui-box>
             </div>
             <div class="dashboard-section-flex">
@@ -93,7 +86,7 @@ export class ContentOverview extends UmbLitElement {
                     <uui-select class="document-type-select" id="documentTypeSelect" label="documentTypeSelect" .options=${this.documentTypeSelectOptions} @change=${this.handleDocumentTypeSelectChange}></uui-select>
                 </div>
                 <uui-box class="chart-box pie-chart">
-                    <canvas id="contentByDocumentStatusChart"></canvas>
+                    <canvas id="documentsByDocumentStatusChart"></canvas>
                 </uui-box>
             </div>
         </div>
@@ -121,7 +114,7 @@ export class ContentOverview extends UmbLitElement {
 
         this.documentTypeSelectOptions = buildDocumentTypeSelectOptions(documentTypes);
 
-        const barChartCtx = this.renderRoot.querySelector('#contentByDocumentTypeChart') as HTMLCanvasElement;
+        const barChartCtx = this.renderRoot.querySelector('#documentsByDocumentTypeChart') as HTMLCanvasElement;
         createDocumentTypeBarChart(barChartCtx, documentTypes);
 
         const getDocumentsWithAuthorsResponse = await tryExecute(this, umbHttpClient.get<DocumentsWithAuthors>({
@@ -144,7 +137,7 @@ export class ContentOverview extends UmbLitElement {
 
         const documentsByStatus = groupDocumentsByStatus(documentsWithAuthorsData.documents);
 
-        const pieChartCtx = this.renderRoot.querySelector('#contentByDocumentStatusChart') as HTMLCanvasElement;
+        const pieChartCtx = this.renderRoot.querySelector('#documentsByDocumentStatusChart') as HTMLCanvasElement;
         createPieChart(pieChartCtx, documentsByStatus);
     }
 

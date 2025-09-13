@@ -26,7 +26,7 @@ import { generalStyles } from '../../styles/general.styles';
 Chart.register(...registerables);
 
 @customElement('user-contributions')
-export class ContentOverview extends UmbLitElement {
+export class UserContributions extends UmbLitElement {
     @state() private documentsTableState: DocumentsTableState = {
         documentsWithAuthors: new DocumentsWithAuthors(),
         filteredDocumentCount: 0,
@@ -76,7 +76,7 @@ export class ContentOverview extends UmbLitElement {
                     <uui-select class="document-type-select" id="documentTypeSelect" label="documentTypeSelect" .options=${this.documentTypeSelectOptions} @change=${this.handleDocumentTypeSelectChange}></uui-select>
                 </div>
                 <uui-box class="chart-box bar-chart">
-                    <canvas id="contentByDocumentTypeChart"></canvas>
+                    <canvas id="documentsByUsersChart"></canvas>
                 </uui-box>
             </div>
         </div>
@@ -116,7 +116,7 @@ export class ContentOverview extends UmbLitElement {
 
         this.documentTypeSelectOptions = buildDocumentTypeSelectOptions(documentTypes);
 
-        const barChartCtx = this.renderRoot.querySelector('#contentByDocumentTypeChart') as HTMLCanvasElement;
+        const barChartCtx = this.renderRoot.querySelector('#documentsByUsersChart') as HTMLCanvasElement;
         createAuthorBarChart(barChartCtx, documentsWithAuthorsData);
 
         this.documentsTableState = {
@@ -130,6 +130,6 @@ export class ContentOverview extends UmbLitElement {
 
 declare global {
     interface HTMLElementTagNameMap {
-        'user-contributions': ContentOverview
+        'user-contributions': UserContributions
     }
 }
