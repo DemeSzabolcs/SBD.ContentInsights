@@ -26,7 +26,7 @@ import { generalStyles } from '../../styles/general.styles';
 Chart.register(...registerables);
 
 @customElement('content-quality-and-lifecycle')
-export class ContentOverview extends UmbLitElement {
+export class ContentQualityAndLifecycle extends UmbLitElement {
     @state() private documentsTableState: DocumentsTableState = {
         documentsWithAuthors: new DocumentsWithAuthors(),
         filteredDocumentCount: 0,
@@ -193,6 +193,6 @@ export class ContentOverview extends UmbLitElement {
 
 declare global {
     interface HTMLElementTagNameMap {
-        'content-quality-and-lifecycle': ContentOverview
+        'content-quality-and-lifecycle': ContentQualityAndLifecycle
     }
 }
