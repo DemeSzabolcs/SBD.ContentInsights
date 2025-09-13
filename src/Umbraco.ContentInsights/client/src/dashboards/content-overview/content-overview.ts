@@ -62,9 +62,7 @@ export class ContentOverview extends UmbLitElement {
 
     render() {
         if (this.hasError) {
-            if (this.hasError) {
-                renderDashboardError();
-            }
+            return renderDashboardError();
         }
 
         return html`

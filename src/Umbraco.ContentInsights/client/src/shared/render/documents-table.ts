@@ -1,8 +1,8 @@
 import { html } from 'lit';
 import type { UmbracoDocument, DocumentsWithAuthors } from '../../shared/types';
-import { convertDocumentStatusToNumberString, getTagColor, getAuthorNameByKey, getAuthorLinkFromKey, getDocumentAgeInDays } from '../../shared/utils';
+import { getTagColor, getAuthorNameByKey, getAuthorLinkFromKey, getDocumentAgeInDays } from '../../shared/utils';
 import type { UUIPaginationElement } from '@umbraco-cms/backoffice/external/uui';
-import { documentStatusOrder } from '../constants';
+import { documentStatus, documentStatusNames } from '../constants';
 
 let savedDocuments: UmbracoDocument[] | null = null;
 
@@ -33,7 +33,7 @@ export function filterDocumentTypes(selectValue: string, state: DocumentsTableSt
 
     if (draftOnly) {
         filteredDocuments = filteredDocuments
-            .filter(document => convertDocumentStatusToNumberString(document.status) === documentStatusOrder.Draft);
+            .filter(document => document.status === documentStatus.Draft);
     }
 
     if (olderThanDays) {
@@ -80,8 +80,8 @@ export function getSortedDocuments(state: DocumentsTableState): UmbracoDocument[
 
         switch (state.sortColumn) {
             case 'status':
-                aValue = convertDocumentStatusToNumberString(a.status);
-                bValue = convertDocumentStatusToNumberString(b.status);
+                aValue = String(a.status);
+                bValue = String(b.status);
                 break;
             case 'name':
                 aValue = a.name;
@@ -183,7 +183,7 @@ export function renderDocumentsTable(
         (item) => html`
                 <tr>
                   <td>
-                  <uui-tag color="${getTagColor(item.status)}">${item.status}</uui-tag>
+                  <uui-tag color="${getTagColor(item.status)}">${documentStatusNames[item.status]}</uui-tag>
                   </td>
                   <td>
                     <uui-button look="default" type="button" href="${item.link}" target="_blank" label="${item.name}">${item.name}<uui-icon name="icon-link"></uui-icon></uui-button>

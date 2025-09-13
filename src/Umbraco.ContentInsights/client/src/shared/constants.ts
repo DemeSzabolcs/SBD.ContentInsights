@@ -8,8 +8,14 @@ export const barChartColors = [
     'rgba(255, 0, 255, 0.7)',
 ];
 
-export const documentStatusOrder = {
-    Public: "0",
-    Draft: "1",
-    Trashed: "2",
+export const documentStatus = {
+    Public: 0,
+    Draft: 1,
+    Trashed: 2,
 };
+
+export const documentStatusNames = [
+    "Public",
+    "Draft",
+    "Trashed",
+];

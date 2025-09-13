@@ -9,21 +9,14 @@ export type UserGroup = {
     key: string;
 };
 
-
 export class DocumentsByStatus {
     public: UmbracoDocument[] = [];
     draft: UmbracoDocument[] = [];
     trashed: UmbracoDocument[] = [];
 }
 
-export enum DocumentStatus {
-    Public,
-    Draft,
-    Trashed,
-}
-
 export type UmbracoDocument = {
-    status: DocumentStatus;
+    status: number;
     name: string;
     link: string;
     type: string;
@@ -31,7 +24,6 @@ export type UmbracoDocument = {
     authorKey: string;
     updateDate: Date;
 }
-
 
 export class Author {
     name: string = '';

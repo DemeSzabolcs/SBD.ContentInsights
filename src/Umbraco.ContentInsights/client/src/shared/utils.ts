@@ -1,28 +1,15 @@
-import { documentStatusOrder } from "./constants";
+import { documentStatus } from "./constants";
 import type { DocumentsTableState } from "./render/documents-table";
-import { DocumentStatus, Author, DocumentsByStatus } from "./types";
+import { Author, DocumentsByStatus } from "./types";
 import type { UmbracoDocument, DocumentsWithAuthors, DocumentType } from "./types";
 
-export const convertDocumentStatusToNumberString = (documentStatus: DocumentStatus): string => {
-    switch (documentStatus as unknown as string) {
-        case DocumentStatus[DocumentStatus.Public]:
-            return documentStatusOrder.Public;
-        case DocumentStatus[DocumentStatus.Draft]:
-            return documentStatusOrder.Draft;
-        case DocumentStatus[DocumentStatus.Trashed]:
-            return documentStatusOrder.Trashed;
-        default:
-            return documentStatusOrder.Public;
-    }
-}
-
-export const getTagColor = (status: DocumentStatus): 'positive' | 'warning' | 'danger' => {
-    switch (status as unknown as string) {
-        case DocumentStatus[DocumentStatus.Public]:
+export const getTagColor = (status: number): 'positive' | 'warning' | 'danger' => {
+    switch (status) {
+        case documentStatus.Public:
             return 'positive';
-        case DocumentStatus[DocumentStatus.Draft]:
+        case documentStatus.Draft:
             return 'warning';
-        case DocumentStatus[DocumentStatus.Trashed]:
+        case documentStatus.Trashed:
             return 'danger';
         default:
             return 'warning';
@@ -44,13 +31,13 @@ export function getAuthorLinkFromKey(authorKey: string): string {
 export function groupDocumentsByStatus(documents: UmbracoDocument[]): DocumentsByStatus {
     return {
         public: documents.filter(
-            (document) => convertDocumentStatusToNumberString(document.status) === documentStatusOrder.Public
+            (document) => document.status === documentStatus.Public
         ),
         draft: documents.filter(
-            (document) => convertDocumentStatusToNumberString(document.status) === documentStatusOrder.Draft
+            (document) => document.status === documentStatus.Draft
         ),
         trashed: documents.filter(
-            (document) => convertDocumentStatusToNumberString(document.status) === documentStatusOrder.Trashed
+            (document) => document.status === documentStatus.Trashed
         ),
     };
 }
