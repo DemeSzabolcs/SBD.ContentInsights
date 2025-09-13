@@ -1,7 +1,7 @@
 import { Chart } from 'chart.js';
 import type { DocumentsByStatus } from '../../../shared/types';
-import { DocumentStatus } from '../../../shared/types';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
+import { documentStatus, documentStatusNames } from '../../../shared/constants';
 
 let savedPieChart: Chart | null = null;
 let savedPieChartDatasetData: number[] | null = null;
@@ -15,9 +15,9 @@ export function createPieChart(
         type: 'pie',
         data: {
             labels: [
-                DocumentStatus[DocumentStatus.Public],
-                DocumentStatus[DocumentStatus.Draft],
-                DocumentStatus[DocumentStatus.Trashed],
+                documentStatusNames[documentStatus.Public],
+                documentStatusNames[documentStatus.Draft],
+                documentStatusNames[documentStatus.Trashed],
             ],
             datasets: [
                 {

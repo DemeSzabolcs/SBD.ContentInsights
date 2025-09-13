@@ -1,43 +1,35 @@
+export type UserGroup = {
+    key: string;
+    name: string;
+};
+
 export type DocumentType = {
     name: string;
     type: string;
     count: number;
 };
 
-export type UserGroup = {
-    name: string;
-    key: string;
-};
-
-
-export class DocumentsByStatus {
-    public: UmbracoDocument[] = [];
-    draft: UmbracoDocument[] = [];
-    trashed: UmbracoDocument[] = [];
-}
-
-export enum DocumentStatus {
-    Public,
-    Draft,
-    Trashed,
-}
-
 export type UmbracoDocument = {
-    status: DocumentStatus;
+    status: number;
     name: string;
-    link: string;
     type: string;
     typeName: string;
+    link: string;
     authorKey: string;
     updateDate: Date;
-}
-
+};
 
 export class Author {
     name: string = '';
     email: string = '';
     link: string = '';
     userGroups: UserGroup[] = [];
+}
+
+export class DocumentsByStatus {
+    public: UmbracoDocument[] = [];
+    draft: UmbracoDocument[] = [];
+    trashed: UmbracoDocument[] = [];
 }
 
 export class DocumentsWithAuthors {

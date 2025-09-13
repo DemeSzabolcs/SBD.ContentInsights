@@ -23,7 +23,7 @@ export const dashboardsManifest: UmbExtensionManifest[] = [
         name: 'User Contributions',
         elementName: 'user-contributions',
         element: () =>
-            import('./user-contributions/user-contributions').then((m) => ({ default: m.ContentOverview })),
+            import('./user-contributions/user-contributions').then((m) => ({ default: m.UserContributions })),
         meta: {
             label: 'User Contributions',
             pathname: 'user-contributions',
@@ -41,7 +41,7 @@ export const dashboardsManifest: UmbExtensionManifest[] = [
         name: 'Content Quality & Lifecycle',
         elementName: 'content-quality-and-lifecycle',
         element: () =>
-            import('./content-quality-and-lifecycle/content-quality-and-lifecycle').then((m) => ({ default: m.ContentOverview })),
+            import('./content-quality-and-lifecycle/content-quality-and-lifecycle').then((m) => ({ default: m.ContentQualityAndLifecycle })),
         meta: {
             label: 'Content Quality & Lifecycle',
             pathname: 'content-quality-and-lifecycle',

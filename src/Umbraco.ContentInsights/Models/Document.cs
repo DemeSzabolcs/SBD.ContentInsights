@@ -1,11 +1,10 @@
 using Umbraco.Cms.Core.Models;
-using Umbraco.ContentInsights.Constants;
 
 namespace Umbraco.ContentInsights.Models;
 
 public class Document
 {
-    public DocumentStatus Status { get; set; }
+    public int Status { get; set; }
     public string Name { get; set; } = string.Empty;
     public string Link { get; set; }
 
@@ -23,10 +22,10 @@ public class Document
 
         Status = content switch
         {
-            { Trashed: true } => DocumentStatus.Trashed,
-            { Published: true, Trashed: false } => DocumentStatus.Public,
-            { Published: false, Trashed: false } => DocumentStatus.Draft,
-            _ => DocumentStatus.Draft,
+            { Trashed: true } => 2,
+            { Published: true, Trashed: false } => 0,
+            { Published: false, Trashed: false } => 1,
+            _ => 0,
         };
 
         Name = content.Name ?? string.Empty;
