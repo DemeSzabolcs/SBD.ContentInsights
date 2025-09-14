@@ -4,10 +4,12 @@ using Umbraco.Cms.Api.Management.Controllers;
 using Umbraco.Cms.Api.Management.Routing;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Services;
+using Umbraco.ContentInsights.Attributes;
 using Umbraco.ContentInsights.Models;
 
 namespace Umbraco.ContentInsights.Controllers;
 
+[AuthorizeContentInsightsAdministrators]
 [VersionedApiBackOfficeRoute("content-insights")]
 [ApiExplorerSettings(GroupName = "Content Insights API")]
 public class ContentInsightsController : ManagementApiControllerBase
