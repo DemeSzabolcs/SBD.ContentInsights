@@ -69,7 +69,7 @@ public class ContentInsightsControllerTests
     }
 
     [Fact]
-    public async Task GetAllDocumentsWithAuthorsReturnsDocumentsAndAuthors()
+    public async Task GetAllDocumentsWithAuthorsShouldReturnDocumentsAndAuthors()
     {
         var writersUserGroup = new UserGroup(_shortStringHelper)
         {
@@ -123,15 +123,12 @@ public class ContentInsightsControllerTests
 
         var simpleContentType = new SimpleContentType(contentTypeMock.Object);
 
-        var content = Mock.Of<IContent>(content =>
-            content.Id == 1 &&
-            content.WriterId == writerUser.Id &&
-            content.PublisherId == null &&
-            content.UpdateDate == DateTime.Now &&
-            content.ContentType == simpleContentType);
+        var publishedContent = CreateMockContent(1, writerUser, simpleContentType, published: true, trashed: false);
+        var draftContent = CreateMockContent(2, writerUser, simpleContentType, published: false, trashed: false);
+        var trashedContent = CreateMockContent(3, writerUser, simpleContentType, published: false, trashed: true);
 
         _contentServiceMock.Setup(service => service.GetRootContent())
-            .Returns([content]);
+            .Returns([publishedContent, draftContent, trashedContent]);
 
         _contentServiceMock.Setup(service =>
             service.GetPagedDescendants(
@@ -176,7 +173,9 @@ public class ContentInsightsControllerTests
 
         var expectedDocuments = new List<Document>
         {
-                new(content, writerUser.Key.ToString()),
+                new(publishedContent, writerUser.Key.ToString()),
+                new(draftContent, writerUser.Key.ToString()),
+                new(trashedContent, writerUser.Key.ToString()),
         };
 
         for (int i = 0; i < expectedAuthors.Count; i++)
@@ -194,4 +193,15 @@ public class ContentInsightsControllerTests
             Assert.Equal(expectedDocuments[i].AuthorKey, documents[i].AuthorKey);
         }
     }
+
+    private static IContent CreateMockContent(int id, User user, SimpleContentType simpleContentType, bool published, bool trashed) =>
+        Mock.Of<IContent>(content =>
+            content.Id == id &&
+            content.WriterId == user.Id &&
+            content.PublisherId == null &&
+            content.UpdateDate == DateTime.Now &&
+            content.ContentType == simpleContentType &&
+            content.Published == published &&
+            content.Trashed == trashed
+        );
 }
