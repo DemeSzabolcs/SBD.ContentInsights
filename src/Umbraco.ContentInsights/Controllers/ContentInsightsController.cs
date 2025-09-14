@@ -60,27 +60,25 @@ public class ContentInsightsController : ManagementApiControllerBase
             .Where(group => group.Permissions.Intersect(neededPermissions).Any()).ToList();
 
         var allContent = GetAllDocuments();
+        var allUsers = userGroupsWithPermissions
+            .SelectMany(group => _userService.GetAllInGroup(group.Id))
+            .DistinctBy(user => user.Id);
 
-        foreach (var group in userGroupsWithPermissions)
+        foreach (var user in allUsers)
         {
-            var users = _userService.GetAllInGroup(group.Id);
-
-            foreach (var user in users)
+            matchingUsers.Add(new Author
             {
-                matchingUsers.Add(new Author
-                {
-                    Name = user.Name ?? user.Username,
-                    Email = user.Email,
-                    Link = user.Key.ToString(),
-                    UserGroups = user.Groups.Select(group => new UserGroup(group.Alias, group.Key.ToString())),
-                });
+                Name = user.Name ?? user.Username,
+                Email = user.Email,
+                Link = user.Key.ToString(),
+                UserGroups = user.Groups.Select(group => new UserGroup(group.Alias, group.Key.ToString())),
+            });
 
-                allDocuments.AddRange(allContent
-                    .Where(document =>
-                        (document.PublisherId.HasValue && document.PublisherId == user.Id) ||
-                        (!document.PublisherId.HasValue && document.WriterId == user.Id))
-                    .Select(document => new Document(document, user.Key.ToString())));
-            }
+            allDocuments.AddRange(allContent
+                .Where(document =>
+                    (document.PublisherId.HasValue && document.PublisherId == user.Id) ||
+                    (!document.PublisherId.HasValue && document.WriterId == user.Id))
+                .Select(document => new Document(document, user.Key.ToString())));
         }
 
         var orderedDocuments = allDocuments
