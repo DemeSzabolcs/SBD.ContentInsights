@@ -2,7 +2,7 @@ import { Chart } from 'chart.js';
 import { createGenericBarChart, resetChart } from '../../../shared/charts/bar-chart';
 import type { ChartState } from '../../../shared/charts/bar-chart';
 
-import type { DocumentType } from '../../../shared/types';
+import type { DocumentType } from '../../../api';
 
 let documentTypeChartState: ChartState | null = null;
 

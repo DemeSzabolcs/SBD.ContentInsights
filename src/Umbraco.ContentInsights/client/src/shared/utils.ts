@@ -1,7 +1,7 @@
+import type { Author, DocumentsWithAuthors, UmbracoDocument, DocumentType } from "../api";
+import { DocumentsByStatus } from "./types";
 import { documentStatus } from "./constants";
 import type { DocumentsTableState } from "./render/documents-table";
-import { Author, DocumentsByStatus } from "./types";
-import type { UmbracoDocument, DocumentsWithAuthors, DocumentType } from "./types";
 
 export const getTagColor = (status: number): 'positive' | 'warning' | 'danger' => {
     switch (status) {

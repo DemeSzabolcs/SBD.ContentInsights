@@ -1,8 +1,8 @@
-import { DocumentsWithAuthors } from '../../../shared/types';
 import { getAuthorDocumentCounts } from '../../../shared/utils';
 import { createGenericBarChart, resetChart } from '../../../shared/charts/bar-chart';
 import type { ChartState } from '../../../shared/charts/bar-chart';
 import { Chart } from 'chart.js';
+import type { DocumentsWithAuthors } from '../../../api';
 
 let originalDocumentsWithAuthors: DocumentsWithAuthors | null = null;
 let savedDocumentsWithAuthors: DocumentsWithAuthors | null = null;
@@ -16,11 +16,11 @@ export function createAuthorBarChart(
     const labels = documentsWithAuthors.authors.map(author => author.name);
     const data = getAuthorDocumentCounts(documentsWithAuthors);
 
-    originalDocumentsWithAuthors = new DocumentsWithAuthors();
+    originalDocumentsWithAuthors = { documents: [], authors: [] } as DocumentsWithAuthors;
     originalDocumentsWithAuthors.documents = [...documentsWithAuthors.documents];
     originalDocumentsWithAuthors.authors = [...documentsWithAuthors.authors];
 
-    savedDocumentsWithAuthors = new DocumentsWithAuthors();
+    savedDocumentsWithAuthors = { documents: [], authors: [] } as DocumentsWithAuthors;
     savedDocumentsWithAuthors.documents = [...documentsWithAuthors.documents];
     savedDocumentsWithAuthors.authors = [...documentsWithAuthors.authors];
 

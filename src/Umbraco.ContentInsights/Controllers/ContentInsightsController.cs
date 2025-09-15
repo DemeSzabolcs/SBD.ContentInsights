@@ -1,7 +1,8 @@
+using Asp.Versioning;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Umbraco.Cms.Api.Common.Attributes;
 using Umbraco.Cms.Api.Management.Controllers;
-using Umbraco.Cms.Api.Management.Routing;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Services;
 using Umbraco.ContentInsights.Attributes;
@@ -10,8 +11,9 @@ using Umbraco.ContentInsights.Models;
 namespace Umbraco.ContentInsights.Controllers;
 
 [AuthorizeContentInsightsAdministrators]
-[VersionedApiBackOfficeRoute("content-insights")]
-[ApiExplorerSettings(GroupName = "Content Insights API")]
+[ApiVersion("1.0")]
+[MapToApi("content-insights")]
+[Route("umbraco/management/api/v{version:apiVersion}/content-insights")]
 public class ContentInsightsController : ManagementApiControllerBase
 {
     private readonly IContentTypeService _contentTypeService;
@@ -49,13 +51,13 @@ public class ContentInsightsController : ManagementApiControllerBase
     }
 
     [HttpGet("get-all-documents-with-authors")]
-    [ProducesResponseType(typeof(IEnumerable<DocumentsWithAuthors>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(DocumentsWithAuthors), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllDocumentsWithAuthors()
     {
         var neededPermissions = new[] { "Umb.Document.Create", "Umb.Document.Update", "Umb.Document.Publish" };
 
         var matchingUsers = new List<Author>();
-        var allDocuments = new List<Document>();
+        var allDocuments = new List<UmbracoDocument>();
         var userGroupsWithPermissions = (await _userGroupService.GetAllAsync(0, int.MaxValue)).Items
             .Where(group => group.Permissions.Intersect(neededPermissions).Any()).ToList();
 
@@ -78,7 +80,7 @@ public class ContentInsightsController : ManagementApiControllerBase
                 .Where(document =>
                     (document.PublisherId.HasValue && document.PublisherId == user.Id) ||
                     (!document.PublisherId.HasValue && document.WriterId == user.Id))
-                .Select(document => new Document(document, user.Key.ToString())));
+                .Select(document => new UmbracoDocument(document, user.Key.ToString())));
         }
 
         var orderedDocuments = allDocuments

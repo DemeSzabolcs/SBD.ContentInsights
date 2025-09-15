@@ -2,9 +2,10 @@ import { Chart } from 'chart.js';
 import { createGenericBarChart } from '../../../shared/charts/bar-chart';
 import type { ChartState } from '../../../shared/charts/bar-chart';
 
-import type { UmbracoDocument } from '../../../shared/types';
+
 import { getDocumentAgeInDays } from '../../../shared/utils';
 import { documentStatus } from '../../../shared/constants';
+import type { UmbracoDocument } from '../../../api';
 
 const AgeBuckets = [
     { label: "0–7 days", from: 0, to: 7 },

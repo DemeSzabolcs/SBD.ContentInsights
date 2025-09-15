@@ -4,14 +4,11 @@ import { customElement, state } from 'lit/decorators.js';
 import { Chart, registerables } from 'chart.js';
 
 // Umbraco backoffice modules.
-import { umbHttpClient } from '@umbraco-cms/backoffice/http-client';
-import { tryExecute } from '@umbraco-cms/backoffice/resources';
 import { UmbLitElement } from '@umbraco-cms/backoffice/lit-element';
-import { umbracoPath } from '@umbraco-cms/backoffice/utils';
 
-// Types.
-import type { DocumentType } from '../../shared/types';
-import { DocumentsWithAuthors } from '../../shared/types';
+// Types, API.
+import { getUmbracoManagementApiV1ContentInsightsGetAllDocumentsWithAuthors, getUmbracoManagementApiV1ContentInsightsGetDocumentTypes, } from '../../api';
+import type { DocumentsWithAuthors } from '../../api';
 
 // Shared utilities, constants.
 import { createAuthorBarChart, resetAuthorBarChart, updateAuthorBarChart } from './charts/bar-chart';
@@ -28,7 +25,7 @@ Chart.register(...registerables);
 @customElement('user-contributions')
 export class UserContributions extends UmbLitElement {
     @state() private documentsTableState: DocumentsTableState = {
-        documentsWithAuthors: new DocumentsWithAuthors(),
+        documentsWithAuthors: { documents: [], authors: [] } as DocumentsWithAuthors,
         filteredDocumentCount: 0,
         currentPage: 1,
         itemsPerPage: 10,
@@ -92,25 +89,19 @@ export class UserContributions extends UmbLitElement {
 
     async firstUpdated() {
 
-        const getDocumentsWithAuthorsResponse = await tryExecute(this, umbHttpClient.get<DocumentsWithAuthors>({
-            url: umbracoPath("/content-insights/get-all-documents-with-authors"),
-        }));
+        const { data: documentsWithAuthorsData, error: documentsWithAuthorsError } = await getUmbracoManagementApiV1ContentInsightsGetAllDocumentsWithAuthors();
 
-        const documentsWithAuthorsData = getDocumentsWithAuthorsResponse.data;
-
-        if (!documentsWithAuthorsData?.documents || !documentsWithAuthorsData?.authors) {
+        if (documentsWithAuthorsError || !documentsWithAuthorsData?.documents || !documentsWithAuthorsData?.authors) {
             this.hasError = true;
+            console.error(documentsWithAuthorsError);
             return;
         }
 
-        const getContentTypesResponse = await tryExecute(this, umbHttpClient.get<DocumentType[]>({
-            url: umbracoPath("/content-insights/get-document-types"),
-        }));
+        const { data: documentTypes, error: documentTypesError } = await getUmbracoManagementApiV1ContentInsightsGetDocumentTypes();
 
-        let documentTypes = getContentTypesResponse.data;
-
-        if (!documentTypes) {
+        if (documentTypesError || !documentTypes) {
             this.hasError = true;
+            console.error(documentTypesError);
             return;
         }
 
