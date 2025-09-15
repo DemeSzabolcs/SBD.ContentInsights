@@ -9,10 +9,7 @@ namespace Umbraco.ContentInsights.Attributes;
 
 public class AuthorizeContentInsightsAdministratorsPolicyComposer : IComposer
 {
-    public void Compose(IUmbracoBuilder builder)
-    {
-        ArgumentNullException.ThrowIfNull(builder);
-
+    public void Compose(IUmbracoBuilder builder) =>
         builder.Services.AddAuthorizationBuilder()
             .AddPolicy(Roles.ContentInsightsAdministratorsGroup, policy =>
             {
@@ -23,7 +20,6 @@ public class AuthorizeContentInsightsAdministratorsPolicyComposer : IComposer
                 policy.AuthenticationSchemes.Add(OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme);
                 policy.RequireAuthenticatedUser();
             });
-    }
 }
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, Inherited = true, AllowMultiple = true)]
