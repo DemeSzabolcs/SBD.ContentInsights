@@ -2,7 +2,7 @@ using Umbraco.Cms.Core.Models;
 
 namespace Umbraco.ContentInsights.Models;
 
-public class Document
+public class UmbracoDocument
 {
     public int Status { get; set; }
     public string Name { get; set; } = string.Empty;
@@ -16,10 +16,8 @@ public class Document
 
     public DateTime UpdateDate { get; set; }
 
-    public Document(IContent content, string authorKey)
+    public UmbracoDocument(IContent content, string authorKey)
     {
-        ArgumentNullException.ThrowIfNull(content);
-
         Status = content switch
         {
             { Trashed: true } => 2,

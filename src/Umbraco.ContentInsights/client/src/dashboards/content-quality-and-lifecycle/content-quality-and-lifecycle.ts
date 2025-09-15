@@ -4,14 +4,11 @@ import { customElement, query, state } from 'lit/decorators.js';
 import { Chart, registerables } from 'chart.js';
 
 // Umbraco backoffice modules.
-import { umbHttpClient } from '@umbraco-cms/backoffice/http-client';
-import { tryExecute } from '@umbraco-cms/backoffice/resources';
 import { UmbLitElement } from '@umbraco-cms/backoffice/lit-element';
-import { umbracoPath } from '@umbraco-cms/backoffice/utils';
 
 // Types.
-import type { DocumentType } from '../../shared/types';
-import { DocumentsWithAuthors } from '../../shared/types';
+import { getUmbracoManagementApiV1ContentInsightsGetAllDocumentsWithAuthors, getUmbracoManagementApiV1ContentInsightsGetDocumentTypes, } from '../../api';
+import type { DocumentsWithAuthors } from '../../api';
 
 // Shared utilities, constants.
 import { createDocumentAgeDistributionBarChart, updateDocumentAgeDistributionChart } from './charts/bar-chart';
@@ -23,12 +20,13 @@ import { buildDocumentTypeSelectOptions, onItemsPerPageChange } from '../../shar
 // Styles.
 import { generalStyles } from '../../styles/general.styles';
 
+
 Chart.register(...registerables);
 
 @customElement('content-quality-and-lifecycle')
 export class ContentQualityAndLifecycle extends UmbLitElement {
     @state() private documentsTableState: DocumentsTableState = {
-        documentsWithAuthors: new DocumentsWithAuthors(),
+        documentsWithAuthors: { documents: [], authors: [] } as DocumentsWithAuthors,
         filteredDocumentCount: 0,
         currentPage: 1,
         itemsPerPage: 10,
@@ -70,7 +68,7 @@ export class ContentQualityAndLifecycle extends UmbLitElement {
     private handleDraftsOlderThanAnyInput(event: Event) {
         const value = Number((event.target as HTMLInputElement).value);
 
-        if (value < 1 || value > 365) {
+        if (value < 0 || value > 365) {
             this.warningMessage.style.visibility = 'visible';
             return;
         }
@@ -125,15 +123,15 @@ export class ContentQualityAndLifecycle extends UmbLitElement {
                     <h2>${this.draftsLabel} Requiring Attention</h2>
                 </div>
                 <div>
-                    <p id="draftsOlderThanWarning" class="warning-message">Value must be between 1 and 365!</p>
+                    <p id="draftsOlderThanWarning" class="warning-message">Value must be between 0 and 365!</p>
                 </div>
                  <div class="drafts-requiring-attention-container">
                     <p class="drafts-older-than-days-days">
                         ${this.draftsLabel} older than ${this.draftsOlderThanDays} days:
                     </p>
                     <h3 class="warning drafts-older-than-days-count">${this.draftDocumentCountInTimeRange}</h3>
-                    <uui-slider id="draftsOlderThanSlider" min="1" max="365" step="1" label="Slider label" value="30" @input=${this.handleDraftsOlderThanAnyInput}></uui-slider>
-                    <uui-input id="draftsOlderThanInput" label="Label" placeholder="30" type="number" inputmode="numeric" min="1" max="365" value="30" @change=${this.handleDraftsOlderThanAnyInput}></uui-input>
+                    <uui-slider id="draftsOlderThanSlider" min="0" max="365" step="1" label="Slider label" value="30" @input=${this.handleDraftsOlderThanAnyInput}></uui-slider>
+                    <uui-input id="draftsOlderThanInput" label="Label" placeholder="30" type="number" inputmode="numeric" min="0" max="365" value="30" @change=${this.handleDraftsOlderThanAnyInput}></uui-input>
                 </div>
                   <uui-toggle label="List all documents anyway" @change=${this.handleListAllDocumentsChange}></uui-toggle>
                   <p> Filtering for: ${this.selectName}
@@ -150,25 +148,19 @@ export class ContentQualityAndLifecycle extends UmbLitElement {
     }
 
     async firstUpdated() {
-        const getDocumentsWithAuthorsResponse = await tryExecute(this, umbHttpClient.get<DocumentsWithAuthors>({
-            url: umbracoPath("/content-insights/get-all-documents-with-authors"),
-        }));
+        const { data: documentsWithAuthorsData, error: documentsWithAuthorsError } = await getUmbracoManagementApiV1ContentInsightsGetAllDocumentsWithAuthors();
 
-        const documentsWithAuthorsData = getDocumentsWithAuthorsResponse.data;
-
-        if (!documentsWithAuthorsData?.documents || !documentsWithAuthorsData?.authors) {
+        if (documentsWithAuthorsError || !documentsWithAuthorsData?.documents || !documentsWithAuthorsData?.authors) {
             this.hasError = true;
+            console.error(documentsWithAuthorsData);
             return;
         }
 
-        const getContentTypesResponse = await tryExecute(this, umbHttpClient.get<DocumentType[]>({
-            url: umbracoPath("/content-insights/get-document-types"),
-        }));
+        const { data: documentTypes, error: documentTypesError } = await getUmbracoManagementApiV1ContentInsightsGetDocumentTypes();
 
-        let documentTypes = getContentTypesResponse.data;
-
-        if (!documentTypes) {
+        if (documentTypesError || !documentTypes) {
             this.hasError = true;
+            console.error(documentTypesError);
             return;
         }
 

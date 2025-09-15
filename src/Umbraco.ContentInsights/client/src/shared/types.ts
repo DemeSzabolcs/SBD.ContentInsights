@@ -1,30 +1,4 @@
-export type UserGroup = {
-    key: string;
-    name: string;
-};
-
-export type DocumentType = {
-    name: string;
-    type: string;
-    count: number;
-};
-
-export type UmbracoDocument = {
-    status: number;
-    name: string;
-    type: string;
-    typeName: string;
-    link: string;
-    authorKey: string;
-    updateDate: Date;
-};
-
-export class Author {
-    name: string = '';
-    email: string = '';
-    link: string = '';
-    userGroups: UserGroup[] = [];
-}
+import type { UmbracoDocument } from "../api";
 
 export class DocumentsByStatus {
     public: UmbracoDocument[] = [];
@@ -32,7 +6,3 @@ export class DocumentsByStatus {
     trashed: UmbracoDocument[] = [];
 }
 
-export class DocumentsWithAuthors {
-    documents: UmbracoDocument[] = [];
-    authors: Author[] = [];
-}

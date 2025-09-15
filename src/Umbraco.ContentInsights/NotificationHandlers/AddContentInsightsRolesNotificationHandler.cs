@@ -61,11 +61,12 @@ public class AddContentInsightsRolesNotificationHandler(
                     _logger.LogWarning("Umbraco.ContentInsights - There is no \"admin\" group, the " +
                         "Content Insights section was not added to the group's allowed sections. Please add it " +
                         $"manually, or add the specified users to the {Roles.ContentInsightsAdministratorsGroup}");
-                    return;
                 }
-
-                adminGroup.AddAllowedSection(Sections.ContentInsights);
-                await _userGroupService.UpdateAsync(adminGroup, SuperUserKey);
+                else
+                {
+                    adminGroup.AddAllowedSection(Sections.ContentInsights);
+                    await _userGroupService.UpdateAsync(adminGroup, SuperUserKey);
+                }
             }
             else
             {

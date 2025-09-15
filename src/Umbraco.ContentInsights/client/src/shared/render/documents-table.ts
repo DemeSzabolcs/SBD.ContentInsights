@@ -1,8 +1,8 @@
 import { html } from 'lit';
-import type { UmbracoDocument, DocumentsWithAuthors } from '../../shared/types';
 import { getTagColor, getAuthorNameByKey, getAuthorLinkFromKey, getDocumentAgeInDays } from '../../shared/utils';
 import type { UUIPaginationElement } from '@umbraco-cms/backoffice/external/uui';
 import { documentStatus, documentStatusNames } from '../constants';
+import type { DocumentsWithAuthors, UmbracoDocument } from '../../api';
 
 let savedDocuments: UmbracoDocument[] | null = null;
 

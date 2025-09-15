@@ -4,16 +4,13 @@ import { customElement, state } from 'lit/decorators.js';
 import { Chart, registerables } from 'chart.js';
 
 // Umbraco backoffice modules.
-import { umbHttpClient } from '@umbraco-cms/backoffice/http-client';
-import { tryExecute } from '@umbraco-cms/backoffice/resources';
 import { UmbLitElement } from '@umbraco-cms/backoffice/lit-element';
-import { umbracoPath } from '@umbraco-cms/backoffice/utils';
 
-// Types.
-import type { DocumentType } from '../../shared/types';
-import { DocumentsWithAuthors } from '../../shared/types';
+// Types, API.
+import { getUmbracoManagementApiV1ContentInsightsGetAllDocumentsWithAuthors, getUmbracoManagementApiV1ContentInsightsGetDocumentTypes, } from '../../api';
+import type { DocumentsWithAuthors } from '../../api';
 
-// Shared utilities, constants.
+// Shared utilities, constants, api.
 import { createDocumentTypeBarChart, resetDocumentTypeBarChart } from './charts/bar-chart';
 import { createPieChart, updatePieChart } from './charts/pie-chart';
 import { renderDocumentsTable, onSort, onPageChange, filterDocumentTypes } from '../../shared/render/documents-table';
@@ -21,16 +18,16 @@ import type { DocumentsTableState } from '../../shared/render/documents-table';
 import { renderDashboardError } from '../../shared/render/error';
 import { buildDocumentTypeSelectOptions, groupDocumentsByStatus, onItemsPerPageChange } from '../../shared/utils';
 
-
 // Styles.
 import { generalStyles } from '../../styles/general.styles';
+
 
 Chart.register(...registerables);
 
 @customElement('content-overview')
 export class ContentOverview extends UmbLitElement {
     @state() private documentsTableState: DocumentsTableState = {
-        documentsWithAuthors: new DocumentsWithAuthors(),
+        documentsWithAuthors: { documents: [], authors: [] } as DocumentsWithAuthors,
         filteredDocumentCount: 0,
         currentPage: 1,
         itemsPerPage: 10,
@@ -101,14 +98,12 @@ export class ContentOverview extends UmbLitElement {
     }
 
     async firstUpdated() {
-        const getContentTypesResponse = await tryExecute(this, umbHttpClient.get<DocumentType[]>({
-            url: umbracoPath("/content-insights/get-document-types"),
-        }));
 
-        let documentTypes = getContentTypesResponse.data;
+        const { data: documentTypes, error: documentTypesError } = await getUmbracoManagementApiV1ContentInsightsGetDocumentTypes();
 
-        if (!documentTypes) {
+        if (documentTypesError || !documentTypes) {
             this.hasError = true;
+            console.error(documentTypesError);
             return;
         }
 
@@ -117,14 +112,12 @@ export class ContentOverview extends UmbLitElement {
         const barChartCtx = this.renderRoot.querySelector('#documentsByDocumentTypeChart') as HTMLCanvasElement;
         createDocumentTypeBarChart(barChartCtx, documentTypes);
 
-        const getDocumentsWithAuthorsResponse = await tryExecute(this, umbHttpClient.get<DocumentsWithAuthors>({
-            url: umbracoPath("/content-insights/get-all-documents-with-authors"),
-        }));
 
-        const documentsWithAuthorsData = getDocumentsWithAuthorsResponse.data;
+        const { data: documentsWithAuthorsData, error: documentsWithAuthorsError } = await getUmbracoManagementApiV1ContentInsightsGetAllDocumentsWithAuthors();
 
-        if (!documentsWithAuthorsData?.documents || !documentsWithAuthorsData?.authors) {
+        if (documentsWithAuthorsError || !documentsWithAuthorsData?.documents || !documentsWithAuthorsData?.authors ) {
             this.hasError = true;
+            console.error(documentsWithAuthorsError);
             return;
         }
 
