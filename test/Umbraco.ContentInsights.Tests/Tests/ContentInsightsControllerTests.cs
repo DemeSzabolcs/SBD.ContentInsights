@@ -171,7 +171,7 @@ public class ContentInsightsControllerTests
             },
         };
 
-        var expectedDocuments = new List<Document>
+        var expectedDocuments = new List<UmbracoDocument>
         {
                 new(publishedContent, writerUser.Key.ToString()),
                 new(draftContent, writerUser.Key.ToString()),
