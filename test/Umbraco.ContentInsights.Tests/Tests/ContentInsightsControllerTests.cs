@@ -1,16 +1,16 @@
 using Microsoft.AspNetCore.Mvc;
 using Moq;
+using SBD.ContentInsights.Controllers;
+using SBD.ContentInsights.Models;
 using Umbraco.Cms.Core.Configuration.Models;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Models.Membership;
 using Umbraco.Cms.Core.Persistence.Querying;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Core.Strings;
-using Umbraco.ContentInsights.Controllers;
-using Umbraco.ContentInsights.Models;
 using UserGroup = Umbraco.Cms.Core.Models.Membership.UserGroup;
 
-namespace Umbraco.ContentInsights.Tests.Tests;
+namespace SBD.ContentInsights.Tests.Tests;
 
 public class ContentInsightsControllerTests
 {

@@ -1,4 +1,4 @@
-# Umbraco-template
+# Umbraco Content Insights
 
 ## Updating Typescript API
 
