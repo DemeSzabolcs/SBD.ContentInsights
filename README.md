@@ -14,22 +14,16 @@ The package, as the name suggests, aims to help get insights about the content, 
 
  1. Add a reference in you webproject to the package, like this:
 ```
- <PackageReference Include="SBD.ContentInsights" Version="16.2.0" />
+ <PackageReference Include="SBD.ContentInsights" Version="1.0.0" />
 ```
 2. Continue with the "*Usage*" section.
 
 ### Using the package as a submodule (not recommended)
-I can't guarantee that it works this way.
  1. Clone the repository.
  2. Either delete [SBD.ContentInsights.TestSite](https://github.com/DemeSzabolcs/SBD.ContentInsights/tree/main/src/SBD.ContentInsights.TestSite) and place your website there, or copy only [SBD.ContentInsights](https://github.com/DemeSzabolcs/SBD.ContentInsights/tree/main/src/SBD.ContentInsights) and insert it into your project.
  3. Reference the SBD.ContentInsights project from your webproject.
- 4. Go to `SBD.ContentInsights\src\SBD.ContentInsights\client` (or where you put the module).
- 5. Run
- ```
- npm run build
-```
-6. Copy the `SBD.ContentInsights\src\SBD.ContentInsights\App_Plugins` folder and paste it into your webproject's folder.
-7. Continue with the "*Usage*" section.
+ 6. Since the project is a [Razor Class Library](https://learn.microsoft.com/en-us/aspnet/core/razor-pages/ui-class?view=aspnetcore-9.0&tabs=visual-studio), the contents off `App_Plugins` should be copied over automatically.
+ 7. Continue with the "*Usage*" section.
 
 ## Usage
  - Start your website.
@@ -90,6 +84,7 @@ By default all document types are taken into account, but you can filter them wi
  Clicking on the author brings you to the edit page of the user.
  
 ## Example content
+Example content is only available if you clone the whole repository and run the [SBD.ContentInsights.TestSite](https://github.com/DemeSzabolcs/SBD.ContentInsights/tree/main/src/SBD.ContentInsights.TestSite) webproject.
 
 ### Users
 Since the project is **not** using the paid version of [uSync](https://our.umbraco.com/packages/developer-tools/usync/), only one user is created, the default admin user.
@@ -127,7 +122,7 @@ npm run generate
 while the site is running.
 
 ## Support me
-If you want to support me and my work, consider sponsoring me on GitHub :)
+If you want to support me and my work, consider sponsoring me on GitHub. :)
 
 [![GitHub Sponsors](https://img.shields.io/badge/Sponsor-GitHub-ff69b4?logo=github&style=flat)](https://github.com/sponsors/YOUR_USERNAME)
 

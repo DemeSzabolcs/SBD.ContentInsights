@@ -7,7 +7,7 @@ export default defineConfig({
             formats: ["es"],
             fileName: "content-insights-bundle",
         },
-        outDir: "../App_Plugins/ContentInsights", // all compiled files will be placed here
+        outDir: "../wwwroot/App_Plugins/ContentInsights", // all compiled files will be placed here
         emptyOutDir: true,
         sourcemap: true,
         rollupOptions: {
