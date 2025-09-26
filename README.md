@@ -12,7 +12,7 @@ The package, as the name suggests, aims to help get insights about the content, 
 ## Getting started
 ### Using the package from NuGet
 
- 1. Add a reference in you webproject to the package, like this:
+ 1. Add a reference in you web project to the package, like this:
 ```
  <PackageReference Include="SBD.ContentInsights" Version="1.0.0-beta.1" />
 ```
@@ -21,13 +21,14 @@ The package, as the name suggests, aims to help get insights about the content, 
 ### Using the package as a submodule (not recommended)
  1. Clone the repository.
  2. Either delete [SBD.ContentInsights.TestSite](https://github.com/DemeSzabolcs/SBD.ContentInsights/tree/main/src/SBD.ContentInsights.TestSite) and place your website there, or copy only [SBD.ContentInsights](https://github.com/DemeSzabolcs/SBD.ContentInsights/tree/main/src/SBD.ContentInsights) and insert it into your project.
- 3. Reference the SBD.ContentInsights project from your webproject.
+ 3. Reference the `SBD.ContentInsights` project from your web project.
  6. Since the project is a [Razor Class Library](https://learn.microsoft.com/en-us/aspnet/core/razor-pages/ui-class?view=aspnetcore-9.0&tabs=visual-studio), the contents off `App_Plugins` should be copied over automatically.
  7. Continue with the "*Usage*" section.
 
 ## Usage
  - Start your website.
  - There will be a new section called "*Content Insights*".
+
 ### Permissions
  - Umbraco by default has an "*Administrators*" user group. The package will grant access to the section for this user group.  
  - There will be    a new user group called "*Content Insights Administrators*". This user group only grants one access: access to the "*Content Insights*"    section. Add users to this group to grant them access to the section.
@@ -40,7 +41,7 @@ Inside the "*Content Insights*" section there are three dashboards:
  - **Content Quality & Lifecycle**
 
 #### Content Overview
-This dashboard consist of three parts:
+This dashboard consists of three parts:
  - **Document count by Document Types**: Bar chart representation of the document counts by doucment types. 
  You can hide different types by clicking on them, and reveal all by clicking on "*Reset*".
  - **Document count by Document Status**: Pie chart representation of the document counts by document statuses.
@@ -52,7 +53,7 @@ This dashboard consist of three parts:
  Clicking on the author brings you to the edit page of the user.
 
 #### User Contribution
-This dashboard consist of two parts:
+This dashboard consists of two parts:
  - **Document count by Users**: Bar chart representation of the document counts by users.
  You can hide different users by clicking on them, and reveal all by clicking on "*Reset*".
  By default all document types are taken into account, but you can filter them with the dropdown.
@@ -67,7 +68,7 @@ This dashboard consist of two parts:
  Clicking on the author brings you to the edit page of the user.
  
 #### Content Quality & Lifecycle
-This dashboard consist of three parts:
+This dashboard consists of three parts:
  - **Document Age Distribution**: Bar chart representation of the document counts by age. 
 By default all document types are taken into account, but you can filter them with the dropdown.
  - **Drafts  Requiring Attention**: By using the slider you can filter for documents with different ages.
@@ -84,7 +85,7 @@ By default all document types are taken into account, but you can filter them wi
  Clicking on the author brings you to the edit page of the user.
  
 ## Example content
-Example content is only available if you clone the whole repository and run the [SBD.ContentInsights.TestSite](https://github.com/DemeSzabolcs/SBD.ContentInsights/tree/main/src/SBD.ContentInsights.TestSite) webproject.
+Example content is only available if you clone the whole repository and run the [SBD.ContentInsights.TestSite](https://github.com/DemeSzabolcs/SBD.ContentInsights/tree/main/src/SBD.ContentInsights.TestSite) web project.
 
 ### Users
 Since the project is **not** using the paid version of [uSync](https://our.umbraco.com/packages/developer-tools/usync/), only one user is created, the default admin user.
@@ -108,6 +109,12 @@ There are four documents types:
 	 - Public: 0
 	 - Draft: 0
 	 - Trashed: 2
+
+## Updating TypeScript files
+If you update the TypeScript files, you need to re-generate the scripts. Simply run:
+``` 
+npm run build 
+```
 
 ## Updating TypeScript API
 If you contribute and modify the C# controller, then you also need to reflect the changes in TypeScript.
