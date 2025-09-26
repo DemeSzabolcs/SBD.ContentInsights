@@ -18,11 +18,13 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <StaticWebAssetBasePath>/</StaticWebAssetBasePath>
     <ContentTargetFolders>.</ContentTargetFolders>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
     <None Include="NuGetIcon.png" Pack="true" PackagePath="" />
     <None Include="..\..\README.md" Pack="true" PackagePath="" />
+    <None Include="..\..\Docs\**" Pack="true" PackagePath="Docs\" Link="Docs\%(RecursiveDir)%(Filename)%(Extension)" />
     <None Remove="node_modules\**" />
     <None Remove="client\node_modules\**" />
   </ItemGroup>
