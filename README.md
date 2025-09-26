@@ -1,6 +1,7 @@
 
 
 # SBD Content Insights
+[![NuGet](https://img.shields.io/nuget/vpre/SBD.ContentInsights.svg)](https://www.nuget.org/packages/SBD.ContentInsights/) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) ![GitHub last commit](https://img.shields.io/github/last-commit/DemeSzabolcs/SBD.ContentInsights)
 
 ## About
 This is a package for the [Umbraco CMS](https://umbraco.com/), written and tested in [V16.2.0](https://www.nuget.org/packages/Umbraco.Cms/16.2.0), although it likely works on other versions too :).
