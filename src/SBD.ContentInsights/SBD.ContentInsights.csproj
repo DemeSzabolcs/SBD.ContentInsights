@@ -1,0 +1,40 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>1.0.0-beta.1</Version>
+    <Title>SBD Content Insights for Umbraco</Title>
+    <Authors>SBD</Authors>
+    <Copyright>Copyright © 2025, SBD</Copyright>
+    <PackageIcon>NuGetIcon.png</PackageIcon>
+    <Description>This package for Umbraco aims to provide insights into the content, specifically the created documents and document types, using Chart.js.</Description>
+    <PackageTags>Umbraco;Cms;Insights;Documents</PackageTags>
+    <RepositoryUrl>https://github.com/DemeSzabolcs/SBD.ContentInsights</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/DemeSzabolcs/SBD.ContentInsights</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <StaticWebAssetBasePath>/</StaticWebAssetBasePath>
+    <ContentTargetFolders>.</ContentTargetFolders>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="NuGetIcon.png" Pack="true" PackagePath="" />
+    <None Include="..\..\README.md" Pack="true" PackagePath="" />
+    <None Include="..\..\License" Pack="true" PackagePath="" />
+    <None Include="..\..\Docs\**" Pack="true" PackagePath="Docs\" Link="Docs\%(RecursiveDir)%(Filename)%(Extension)" />
+    <None Remove="node_modules\**" />
+    <None Remove="client\node_modules\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Umbraco.Cms.Api.Management" Version="16.2.0" />
+    <PackageReference Include="Umbraco.Cms.Core" Version="16.2.0" />
+    <PackageReference Include="Umbraco.Cms.Infrastructure" Version="16.2.0" />
+    <PackageReference Include="Umbraco.Cms.Web.Common" Version="16.2.0" />
+  </ItemGroup>
+</Project>
+

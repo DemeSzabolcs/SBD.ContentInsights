@@ -1,0 +1,34 @@
+name: Publish NuGet Package
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore src/SBD.ContentInsights/SBD.ContentInsights.csproj
+
+      - name: Build project
+        run: dotnet build src/SBD.ContentInsights/SBD.ContentInsights.csproj --configuration Release --no-restore
+
+      - name: Pack NuGet package
+        run: dotnet pack src/SBD.ContentInsights/SBD.ContentInsights.csproj --configuration Release --no-build -o ./nupkg
+
+      - name: Push to NuGet
+        uses: NuGet/setup-nuget@v1
+        with:
+          nuget-api-key: ${{ secrets.NUGET_API_KEY }}
+        run: dotnet nuget push ./nupkg/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json

@@ -1,0 +1,13 @@
+{
+  "id": "SBD.ContentInsights",
+  "name": "SBD.ContentInsights",
+  "version": "1.0.0-beta.1",
+  "extensions": [
+    {
+      "type": "bundle",
+      "name": "Umbraco Content Insights Bundle",
+      "alias": "SBD.ContentInsights.Bundle",
+      "js": "/App_Plugins/ContentInsights/content-insights-bundle.js"
+    }
+  ]
+}
