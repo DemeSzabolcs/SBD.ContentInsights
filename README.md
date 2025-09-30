@@ -143,6 +143,15 @@ npm run generate
 ```
 while the site is running.
 
+## Used packages
+- [uSync](https://our.umbraco.com/packages/developer-tools/usync/): For creating the example documents on the test site.
+- [Chart.js](https://www.chartjs.org/): For displaying data in charts.
+- [.NET-Analyzers](https://github.com/Lombiq/.NET-Analyzers): For static code analysis.
+
+## License
+This project is licensed under the [MIT License](./LICENSE).  
+Third-party libraries are provided under their own licenses. See [Docs/Third-party notices](./Docs/Third-party%20notices) for details.
+
 ## Support me
 If you want to support me and my work, consider sponsoring me on GitHub. :)
 
