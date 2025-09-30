@@ -6,7 +6,7 @@ on:
       - 'v*'
 
 jobs:
-  build-and-publish:
+  build-and-publish-nuget-package:
     runs-on: ubuntu-latest
 
     steps:
@@ -26,11 +26,6 @@ jobs:
 
       - name: Pack NuGet package
         run: dotnet pack src/SBD.ContentInsights/SBD.ContentInsights.csproj --configuration Release --no-build -o ./nupkg
-
-      - name: Setup NuGet
-        uses: NuGet/setup-nuget@v1
-        with:
-          nuget-api-key: ${{ secrets.NUGET_API_KEY }}
       
       - name: Push NuGet package
         run: dotnet nuget push ./nupkg/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
