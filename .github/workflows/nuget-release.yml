@@ -5,7 +5,7 @@ on:
     tags:
       - 'v*'
 env:
-  PACKAGE_OUTPUT_DIRECTORY: ${{ github.workspace }}\output
+  PACKAGE_OUTPUT_DIRECTORY: ${{ github.workspace }}/output
   
 jobs:
   build-and-publish-nuget-package:
