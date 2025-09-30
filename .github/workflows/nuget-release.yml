@@ -6,7 +6,7 @@ on:
       - 'v*'
 
 jobs:
-  build-and-publish:
+  build-and-publish-nuget-package:
     runs-on: ubuntu-latest
 
     steps:
