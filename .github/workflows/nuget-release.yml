@@ -4,7 +4,9 @@ on:
   push:
     tags:
       - 'v*'
-
+env:
+  PACKAGE_OUTPUT_DIRECTORY: ${{ github.workspace }}\output
+  
 jobs:
   build-and-publish-nuget-package:
     runs-on: ubuntu-latest
@@ -24,8 +26,12 @@ jobs:
       - name: Build project
         run: dotnet build src/SBD.ContentInsights/SBD.ContentInsights.csproj --configuration Release --no-restore
 
+      - name: 'Get Version'
+        id: version
+        uses: battila7/get-version-action@v2
+        
       - name: Pack NuGet package
-        run: dotnet pack src/SBD.ContentInsights/SBD.ContentInsights.csproj --configuration Release --no-build -o ./nupkg
+        run: dotnet pack src/SBD.ContentInsights/SBD.ContentInsights.csproj --configuration Release --no-build --include-symbols -p:PackageVersion=${{ steps.version.outputs.version-without-v }} --output ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
       
       - name: Push NuGet package
-        run: dotnet nuget push ./nupkg/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+        run: dotnet nuget push ${{ env.PACKAGE_OUTPUT_DIRECTORY }}\*.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json --skip-duplicate
