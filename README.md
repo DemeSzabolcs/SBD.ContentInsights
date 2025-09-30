@@ -15,7 +15,7 @@ The package, as the name suggests, aims to help get insights about the content, 
 
  1. Add a reference in you web project to the package, like this:
 ```
- <PackageReference Include="SBD.ContentInsights" Version="1.0.0-beta.2" />
+ <PackageReference Include="SBD.ContentInsights" Version="1.0.0-beta.1" />
 ```
 2. Continue with the "*Usage*" section.
 
