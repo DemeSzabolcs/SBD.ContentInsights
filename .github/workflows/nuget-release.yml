@@ -31,7 +31,7 @@ jobs:
         uses: battila7/get-version-action@v2
         
       - name: Pack NuGet package
-        run: dotnet pack src/SBD.ContentInsights/SBD.ContentInsights.csproj --configuration Release --no-build --include-symbols -p:PackageVersion=${{ steps.version.outputs.version-without-v }} --output ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
+        run: dotnet pack src/SBD.ContentInsights/SBD.ContentInsights.csproj --configuration Release --no-build --include-symbols -p:PackageVersion=${{ steps.version.outputs.version-without-v }} -o ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
       
       - name: Push NuGet package
         run: dotnet nuget push ${{ env.PACKAGE_OUTPUT_DIRECTORY }}\*.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json --skip-duplicate
