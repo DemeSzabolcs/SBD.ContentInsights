@@ -4,7 +4,6 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Title>SBD Content Insights for Umbraco</Title>
     <Authors>SBD</Authors>
     <Copyright>Copyright © 2025, SBD</Copyright>
