@@ -155,7 +155,7 @@ Third-party libraries are provided under their own licenses. See [Docs/Third-par
 ## Support me
 If you want to support me and my work, consider sponsoring me on GitHub. :)
 
-[![GitHub Sponsors](https://img.shields.io/badge/Sponsor-GitHub-ff69b4?logo=github&style=flat)](https://github.com/sponsors/YOUR_USERNAME)
+[![GitHub Sponsors](https://img.shields.io/badge/Sponsor-GitHub-ff69b4?logo=github&style=flat)](https://github.com/sponsors/DemeSzabolcs)
 
 All support is appreciated!
 
