@@ -9,7 +9,7 @@
     <Copyright>Copyright © 2025, SBD</Copyright>
     <PackageIcon>NuGetIcon.png</PackageIcon>
     <Description>This package for Umbraco aims to provide insights into the content, specifically the created documents and document types, using Chart.js.</Description>
-    <PackageTags>Umbraco;Cms;Insights;Documents</PackageTags>
+    <PackageTags>Umbraco;Cms;Insights;Documents;umbraco-marketplace</PackageTags>
     <RepositoryUrl>https://github.com/DemeSzabolcs/SBD.ContentInsights</RepositoryUrl>
     <PackageProjectUrl>https://github.com/DemeSzabolcs/SBD.ContentInsights</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
