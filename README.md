@@ -30,15 +30,15 @@ The package, as the name suggests, aims to help get insights about the content, 
  - Start your website.
  - There will be a new section called "*Content Insights*".
 
-![Content Insights Section](./Docs/Images/content-insights-section.png)
+![Content Insights Section](https://raw.githubusercontent.com/DemeSzabolcs/SBD.ContentInsights/refs/heads/main/Docs/Images/content-insights-section.png)
 
 ### Permissions
  - Umbraco by default has an "*Administrators*" user group. The package will grant access to the section for this user group.
 
-![Content Insights Section Access](./Docs/Images/content-insights-section-access.png)
+![Content Insights Section Access](https://raw.githubusercontent.com/DemeSzabolcs/SBD.ContentInsights/refs/heads/main/Docs/Images/content-insights-section-access.png)
  - There will be    a new user group called "*Content Insights Administrators*". This user group only grants one access: access to the "*Content Insights*"    section. Add users to this group to grant them access to the section.
 
-![Content Insights Administrators User Group](./Docs/Images/content-insights-administrators-user-group.png)
+![Content Insights Administrators User Group](https://raw.githubusercontent.com/DemeSzabolcs/SBD.ContentInsights/refs/heads/main/Docs/Images/content-insights-administrators-user-group.png)
  - Permissions are checked during API calls too, so instead of granting a user group the section access, put the desired user into the "*Content Insights Administrators*" group. (The user needs to be in "*Administrators*" or "*Content Insights Administrators*").
  
 ### Dashboards
@@ -59,7 +59,7 @@ This dashboard consists of three parts:
  Clicking on the name brings you to the edit page of the document.
  Clicking on the author brings you to the edit page of the user.
 
-![Content Overview](./Docs/Images/content-overview.png)
+![Content Overview](https://raw.githubusercontent.com/DemeSzabolcs/SBD.ContentInsights/refs/heads/main/Docs/Images/content-overview.png)
 
 #### User Contribution
 This dashboard consists of two parts:
@@ -76,7 +76,7 @@ This dashboard consists of two parts:
  Clicking on the name brings you to the edit page of the document.
  Clicking on the author brings you to the edit page of the user.
 
-![User Contributions](./Docs/Images/user-contributions.png)
+![User Contributions](https://raw.githubusercontent.com/DemeSzabolcs/SBD.ContentInsights/refs/heads/main/Docs/Images/user-contributions.png)
  
 #### Content Quality & Lifecycle
 This dashboard consists of three parts:
@@ -95,7 +95,7 @@ By default all document types are taken into account, but you can filter them wi
  Clicking on the name brings you to the edit page of the document.
  Clicking on the author brings you to the edit page of the user.
 
-![Content Quality & Lifecycle](./Docs/Images/content-quality-and-lifecycle.png)
+![Content Quality & Lifecycle](https://raw.githubusercontent.com/DemeSzabolcs/SBD.ContentInsights/refs/heads/main/Docs/Images/content-quality-and-lifecycle.png)
  
 ## Example content
 Example content is only available if you clone the whole repository and run the [SBD.ContentInsights.TestSite](https://github.com/DemeSzabolcs/SBD.ContentInsights/tree/main/src/SBD.ContentInsights.TestSite) web project.
@@ -123,7 +123,7 @@ There are four documents types:
 	 - Draft: 0
 	 - Trashed: 2
 
-![Content](./Docs/Images/content.png)
+![Content](https://raw.githubusercontent.com/DemeSzabolcs/SBD.ContentInsights/refs/heads/main/Docs/Images/content.png)
 
 ## Updating TypeScript files
 If you update the TypeScript files, you need to re-generate the scripts. Simply run:
